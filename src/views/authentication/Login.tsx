@@ -10,57 +10,36 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ThemeToggle from "@/components/ui/theme-toggle";
-import { useLogin } from "@/hooks/useGraphQL";
+import { useMutation } from "@apollo/client/react";
+import { LOGIN } from "@/graphql/magazine-operations";
 import { useAppDispatch } from "@/redux/hooks";
 import { setCredentials } from "@/redux/slices/authSlice";
-import { useAuth } from "@/redux/useAuth";
-import { ArrowRight, Eye, EyeOff, Lock, Phone } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Mail, Lock, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { login, loading: isLoginLoading } = useLogin();
-  const { error: authError } = useAuth();
+  const [loginMutation, { loading }] = useMutation(LOGIN);
 
   const [formData, setFormData] = useState({
-    phone: "",
+    email: "",
     password: "",
     rememberMe: false,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{
-    phone?: string;
+    email?: string;
     password?: string;
     general?: string;
   }>({});
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    if (field === "phone" && typeof value === "string") {
-      // Remove any non-numeric characters
-      let cleanValue = value.replace(/[^\d]/g, "");
-
-      // Only allow digits starting with 9 and limit to 9 digits total
-      if (cleanValue && !cleanValue.startsWith("9")) {
-        return; // Don't update if it doesn't start with 9
-      }
-
-      // Limit to 9 digits (9xxxxxxxx)
-      if (cleanValue.length > 9) {
-        cleanValue = cleanValue.substring(0, 9);
-      }
-
-      setFormData((prev) => ({
-        ...prev,
-        [field]: cleanValue,
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
 
     // Clear error when user starts typing
     if (errors[field as keyof typeof errors]) {
@@ -74,11 +53,10 @@ const Login = () => {
   const validateForm = () => {
     const newErrors: typeof errors = {};
 
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required";
-    } else if (!/^9\d{8}$/.test(formData.phone)) {
-      newErrors.phone =
-        "Please enter a valid Ethiopian phone number (9xxxxxxxx)";
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
     }
 
     if (!formData.password.trim()) {
@@ -101,51 +79,65 @@ const Login = () => {
     setErrors({});
 
     try {
-      const result = await login({
-        phone: "+251" + formData.phone.trim(),
-        password: formData.password,
+      const { data } = await loginMutation({
+        variables: {
+          input: {
+            email: formData.email.trim(),
+            password: formData.password,
+          },
+        },
       });
 
-      if (result?.token && result?.user) {
-        // Store user information in Redux
+      if (data?.login) {
+        const { access_token, refresh_token, user } = data.login;
+
+        // Store tokens and user in Redux
         dispatch(
           setCredentials({
-            token: result.token,
-            user: result.user,
+            accessToken: access_token,
+            refreshToken: refresh_token,
+            user: {
+              id: user.id,
+              email: user.email,
+              display_name: user.display_name,
+              avatar_url: user.avatar_url,
+              role: user.role?.name || "contributor",
+              is_active: user.is_active,
+            },
           })
         );
 
-        // Navigate based on user role
-        const userRole = result.user.role?.toLowerCase();
-        if (userRole === "fl") {
-          navigate("/families/my-family");
+        // Store tokens in localStorage for persistence
+        if (formData.rememberMe) {
+          localStorage.setItem("access_token", access_token);
+          localStorage.setItem("refresh_token", refresh_token);
         } else {
-          navigate("/dashboard");
+          sessionStorage.setItem("access_token", access_token);
+          sessionStorage.setItem("refresh_token", refresh_token);
         }
-      } else {
-        // Handle unsuccessful login
-        const errorMessage =
-          result?.message ||
-          "Invalid phone number or password. Please try again.";
-        setErrors({
-          general: errorMessage,
-        });
+
+        // Navigate to dashboard
+        navigate("/admin/dashboard");
       }
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("Login error:", error);
+      const errorMessage =
+        error?.graphQLErrors?.[0]?.message ||
+        error?.message ||
+        "Invalid email or password. Please try again.";
       setErrors({
-        general: "Invalid phone number or password. Please try again.",
+        general: errorMessage,
       });
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4 relative">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4 relative">
       {/* Background Pattern */}
       <div
         className="absolute inset-0 opacity-5 dark:opacity-10"
         style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.3) 1px, transparent 0)`,
+          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(147, 51, 234, 0.3) 1px, transparent 0)`,
           backgroundSize: "20px 20px",
         }}
       ></div>
@@ -158,72 +150,64 @@ const Login = () => {
       <div className="w-full max-w-md relative z-10">
         {/* Logo/Brand Section */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl mb-4 shadow-lg">
-            <span className="text-2xl font-bold text-white">GY</span>
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl mb-4 shadow-2xl transform hover:scale-105 transition-transform duration-300">
+            <BookOpen className="w-10 h-10 text-white" strokeWidth={2} />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Gotera Youth
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+            Zoe Magazine
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Member Management System
+          <p className="text-gray-600 dark:text-gray-400 font-medium">
+            Content Management System
           </p>
         </div>
 
         {/* Login Card */}
-        <Card className="shadow-2xl border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+        <Card className="shadow-2xl border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md">
           <CardHeader className="space-y-1 pb-6">
             <CardTitle className="text-2xl font-semibold text-center text-gray-900 dark:text-white">
               Welcome Back
             </CardTitle>
             <CardDescription className="text-center text-gray-600 dark:text-gray-400">
-              Sign in to your account to continue
+              Sign in to manage your magazine content
             </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
             {/* General Error Message */}
-            {(errors.general || authError) && (
+            {errors.general && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
                 <p className="text-sm text-red-600 dark:text-red-400 text-center">
-                  {errors.general || authError}
+                  {errors.general}
                 </p>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Phone Number Field */}
+              {/* Email Field */}
               <div className="space-y-2">
                 <Label
-                  htmlFor="phone"
+                  htmlFor="email"
                   className="text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
-                  Phone Number
+                  Email Address
                 </Label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <div className="relative">
-                    <span className="absolute left-10 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm font-medium pointer-events-none z-10">
-                      +251
-                    </span>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="9xxxxxxxx"
-                      value={formData.phone}
-                      onChange={(e) =>
-                        handleInputChange("phone", e.target.value)
-                      }
-                      className={`pl-20 ${
-                        errors.phone
-                          ? "border-red-500 focus:border-red-500"
-                          : ""
-                      }`}
-                      disabled={isLoginLoading}
-                    />
-                  </div>
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="admin@zoe-magazine.com"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    className={`pl-10 ${
+                      errors.email ? "border-red-500 focus:border-red-500" : ""
+                    }`}
+                    disabled={loading}
+                    autoComplete="email"
+                  />
                 </div>
-                {errors.phone && (
-                  <p className="text-sm text-red-500">{errors.phone}</p>
+                {errors.email && (
+                  <p className="text-sm text-red-500">{errors.email}</p>
                 )}
               </div>
 
@@ -250,13 +234,15 @@ const Login = () => {
                         ? "border-red-500 focus:border-red-500"
                         : ""
                     }`}
-                    disabled={isLoginLoading}
+                    disabled={loading}
+                    autoComplete="current-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                    disabled={isLoginLoading}
+                    disabled={loading}
+                    tabIndex={-1}
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" />
@@ -279,7 +265,7 @@ const Login = () => {
                     onCheckedChange={(checked) =>
                       handleInputChange("rememberMe", checked as boolean)
                     }
-                    disabled={isLoginLoading}
+                    disabled={loading}
                   />
                   <Label
                     htmlFor="rememberMe"
@@ -290,8 +276,14 @@ const Login = () => {
                 </div>
                 <button
                   type="button"
-                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                  disabled={isLoginLoading}
+                  className="text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors"
+                  disabled={loading}
+                  onClick={() => {
+                    // TODO: Implement forgot password
+                    alert(
+                      "Please contact your administrator to reset your password."
+                    );
+                  }}
                 >
                   Forgot password?
                 </button>
@@ -300,10 +292,10 @@ const Login = () => {
               {/* Login Button */}
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-2.5 transition-all duration-200 shadow-lg hover:shadow-xl"
-                disabled={isLoginLoading}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-2.5 transition-all duration-200 shadow-lg hover:shadow-xl"
+                disabled={loading}
               >
-                {isLoginLoading ? (
+                {loading ? (
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Signing in...</span>
@@ -317,40 +309,27 @@ const Login = () => {
               </Button>
             </form>
 
-            {/* Divider */}
-            {/* <div className="relative">
-              <Separator className="my-6" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="bg-white dark:bg-gray-800 px-4 text-sm text-gray-500 dark:text-gray-400">
-                  or
-                </span>
-              </div>
-            </div> */}
-
-            {/* Additional Options */}
-            {/* <div className="space-y-3">
-              <Button
-                variant="outline"
-                className="w-full border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-                disabled={isLoginLoading}
-              >
-                <div className="flex items-center space-x-2">
-                  <span>Continue as Guest</span>
-                </div>
-              </Button>
-            </div> */}
-
             {/* Footer */}
             <div className="text-center pt-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Don't have an account?{" "}
                 <button
                   type="button"
-                  className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
-                  disabled={isLoginLoading}
+                  className="text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium transition-colors"
+                  disabled={loading}
+                  onClick={() => {
+                    alert("Please contact your administrator for access.");
+                  }}
                 >
                   Contact Administrator
                 </button>
+              </p>
+            </div>
+
+            {/* Test Credentials Info */}
+            <div className="text-center pt-2">
+              <p className="text-xs text-gray-500 dark:text-gray-500 bg-gray-50 dark:bg-gray-900/50 rounded px-3 py-2">
+                Default: admin@zoe-magazine.com / admin123
               </p>
             </div>
           </CardContent>
@@ -359,7 +338,7 @@ const Login = () => {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            © 2025 Gotera Youth. All rights reserved.
+            © 2024 Zoe Digital Magazine. All rights reserved.
           </p>
         </div>
       </div>

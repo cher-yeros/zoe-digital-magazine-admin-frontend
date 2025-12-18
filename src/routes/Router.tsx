@@ -7,37 +7,18 @@ import RoleBasedDashboard from "@/components/shared/RoleBasedDashboard";
 const FullLayout = lazy(() => import("../layouts/full/FullLayout"));
 const BlankLayout = lazy(() => import("../layouts/blank/BlankLayout"));
 
-// Pages
-const Dashboard = lazy(() => import("../views/dashboard/Dashboard"));
-const FamilyLeaderDashboard = lazy(
-  () => import("../views/dashboard/FamilyLeaderDashboard")
-);
-const MinistryLeaderDashboard = lazy(
-  () => import("../views/dashboard/MinistryLeaderDashboard")
-);
-const Members = lazy(() => import("../views/members/Members"));
-const OverviewPage = lazy(() => import("../views/overview/OverviewPage"));
-const FamiliesPage = lazy(() => import("../views/families/FamiliesPage"));
-const FamilyMembers = lazy(() => import("../views/families/FamilyMembers"));
-const ProfessionsPage = lazy(
-  () => import("../views/professions/ProfessionsPage")
-);
-const LocationsPage = lazy(() => import("../views/locations/LocationsPage"));
-const FamilyMemberMapping = lazy(
-  () => import("../views/family-mapping/FamilyMemberMapping")
-);
-const ActivityLogs = lazy(() => import("../views/activity-logs/ActivityLogs"));
-const AttendanceManagement = lazy(
-  () => import("../views/attendance/AttendanceManagement")
-);
-const MinistriesManagement = lazy(
-  () => import("../views/ministries/MinistriesManagement")
-);
-const MinistryMembers = lazy(
-  () => import("../views/ministries/MinistryMembers")
-);
+// Pages - Magazine Platform
+const MagazineDashboard = lazy(() => import("../views/dashboard/MagazineDashboard"));
+const ArticlesListPage = lazy(() => import("../views/articles/ArticlesListPage"));
+const ArticleEditorPage = lazy(() => import("../views/articles/ArticleEditorPage"));
+const SubmissionsPage = lazy(() => import("../views/articles/SubmissionsPage"));
+const UsersManagementPage = lazy(() => import("../views/users/UsersManagementPage"));
+const CategoriesPage = lazy(() => import("../views/categories/CategoriesPage"));
+const IssuesPage = lazy(() => import("../views/issues/IssuesPage"));
+const CommentsPage = lazy(() => import("../views/comments/CommentsPage"));
+const AuditLogsPage = lazy(() => import("../views/audit/AuditLogsPage"));
+const SubscriptionsPage = lazy(() => import("../views/subscriptions/SubscriptionsPage"));
 const Login = lazy(() => import("../views/authentication/Login"));
-const ComboBoxTest = lazy(() => import("../components/test/ComboBoxTest"));
 
 const Router = [
   {
@@ -50,145 +31,129 @@ const Router = [
     children: [
       {
         path: "/",
+        element: <Navigate to="/admin/dashboard" />,
+      },
+      {
+        path: "/admin",
+        element: <Navigate to="/admin/dashboard" />,
+      },
+      {
+        path: "/admin/dashboard",
         element: (
           <ProtectedRoute>
-            <RoleBasedDashboard />
+            <MagazineDashboard />
           </ProtectedRoute>
         ),
       },
       {
-        path: "/dashboard",
-        element: (
-          <ProtectedRoute requiredRole="admin">
-            <Dashboard />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "/family-dashboard",
-        element: (
-          <ProtectedRoute requiredRole="fl">
-            <FamilyLeaderDashboard />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "/ministry-dashboard",
-        element: (
-          <ProtectedRoute requiredRole="ml">
-            <MinistryLeaderDashboard />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "/ministries",
-        element: (
-          <ProtectedRoute requiredRole="admin">
-            <MinistriesManagement />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "/ministries/:ministryId/members",
+        path: "/admin/articles",
         element: (
           <ProtectedRoute>
-            <MinistryMembers />
+            <ArticlesListPage />
           </ProtectedRoute>
         ),
       },
       {
-        path: "/ministries/my-ministry",
-        element: (
-          <ProtectedRoute requiredRole="ml">
-            <MinistryMembers />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "/members",
-        element: (
-          <ProtectedRoute requiredRole="admin">
-            <Members />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "/overview",
-        element: (
-          <ProtectedRoute requiredRole="admin">
-            <OverviewPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "/families",
-        element: (
-          <ProtectedRoute requiredRole="admin">
-            <FamiliesPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "/families/:familyId/members",
+        path: "/admin/articles/new",
         element: (
           <ProtectedRoute>
-            <FamilyMembers />
+            <ArticleEditorPage />
           </ProtectedRoute>
         ),
       },
       {
-        path: "/families/my-family",
+        path: "/admin/articles/:id/edit",
         element: (
-          <ProtectedRoute requiredRole="fl">
-            <FamilyMembers />
+          <ProtectedRoute>
+            <ArticleEditorPage />
           </ProtectedRoute>
         ),
       },
       {
-        path: "/professions",
+        path: "/admin/articles/:id/preview",
         element: (
-          <ProtectedRoute requiredRole="admin">
-            <ProfessionsPage />
+          <ProtectedRoute>
+            <ArticleEditorPage />
           </ProtectedRoute>
         ),
       },
       {
-        path: "/locations",
+        path: "/admin/articles/:articleId/review/:revisionId",
         element: (
-          <ProtectedRoute requiredRole="admin">
-            <LocationsPage />
+          <ProtectedRoute>
+            <ArticleEditorPage />
           </ProtectedRoute>
         ),
       },
       {
-        path: "/family-mapping",
+        path: "/admin/submissions",
         element: (
-          <ProtectedRoute requiredRole="admin">
-            <FamilyMemberMapping />
+          <ProtectedRoute>
+            <SubmissionsPage />
           </ProtectedRoute>
         ),
       },
       {
-        path: "/activity-logs",
+        path: "/admin/users",
         element: (
-          <ProtectedRoute requiredRole="admin">
-            <ActivityLogs />
+          <ProtectedRoute>
+            <UsersManagementPage />
           </ProtectedRoute>
         ),
       },
       {
-        path: "/attendance",
+        path: "/admin/categories",
         element: (
-          <ProtectedRoute requiredRole="fl">
-            <AttendanceManagement />
+          <ProtectedRoute>
+            <CategoriesPage />
           </ProtectedRoute>
         ),
       },
       {
-        path: "/test-combobox",
+        path: "/admin/issues",
         element: (
-          <ProtectedRoute requiredRole="admin">
-            <ComboBoxTest />
+          <ProtectedRoute>
+            <IssuesPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin/comments",
+        element: (
+          <ProtectedRoute>
+            <CommentsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin/media",
+        element: (
+          <ProtectedRoute>
+            <MagazineDashboard />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin/analytics",
+        element: (
+          <ProtectedRoute>
+            <MagazineDashboard />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin/audit-logs",
+        element: (
+          <ProtectedRoute>
+            <AuditLogsPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin/subscriptions",
+        element: (
+          <ProtectedRoute>
+            <SubscriptionsPage />
           </ProtectedRoute>
         ),
       },

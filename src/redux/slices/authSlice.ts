@@ -6,57 +6,40 @@ import {
 
 // Types
 export interface User {
-  id: number;
-  phone: string;
+  id: string;
+  email: string;
+  display_name: string;
+  avatar_url?: string | null;
   role: string;
-  member?: {
-    id: number;
-    contact_no?: string;
-    full_name: string;
-    family?: {
-      id: number;
-      name: string;
-    };
-    role?: {
-      id: number;
-      name: string;
-      description: string;
-    };
-    status?: {
-      id: number;
-      name: string;
-    };
-    ministries?: {
-      id: number;
-      name: string;
-      description?: string;
-      is_active: boolean;
-    }[];
-  };
+  is_active: boolean;
 }
 
 export interface AuthState {
   user: User | null;
-  token: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
 }
 
 export interface LoginCredentials {
-  phone: string;
+  email?: string;
+  phone?: string;
   password: string;
 }
 
 export interface LoginResponse {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   user: User;
 }
 
 // Initial state
 const initialState: AuthState = {
   user: null,
-  token: null,
+  accessToken: null,
+  refreshToken: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
@@ -101,26 +84,35 @@ const authSlice = createSlice({
   reducers: {
     // Synchronous actions
     setCredentials: (state, action: PayloadAction<LoginResponse>) => {
-      const { token, user } = action.payload;
-      state.token = token;
+      const { accessToken, refreshToken, user } = action.payload;
+      state.accessToken = accessToken;
+      state.refreshToken = refreshToken;
       state.user = user;
       state.isAuthenticated = true;
       state.error = null;
 
-      // Store in localStorage for persistence
-      localStorage.setItem("authToken", token);
+      // Note: Tokens are stored in localStorage/sessionStorage by the Login component
+      // We just store user data here
       localStorage.setItem("user", JSON.stringify(user));
     },
 
+    updateAccessToken: (state, action: PayloadAction<string>) => {
+      state.accessToken = action.payload;
+    },
+
     clearCredentials: (state) => {
-      state.token = null;
+      state.accessToken = null;
+      state.refreshToken = null;
       state.user = null;
       state.isAuthenticated = false;
       state.error = null;
 
-      // Clear localStorage
-      localStorage.removeItem("authToken");
+      // Clear all storage
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
       localStorage.removeItem("user");
+      sessionStorage.removeItem("access_token");
+      sessionStorage.removeItem("refresh_token");
     },
 
     setLoading: (state, action: PayloadAction<boolean>) => {
@@ -131,22 +123,31 @@ const authSlice = createSlice({
       state.error = action.payload;
     },
 
-    // Initialize auth state from localStorage
+    // Initialize auth state from localStorage/sessionStorage
     initializeAuth: (state) => {
-      const storedToken = localStorage.getItem("authToken");
+      const storedAccessToken =
+        localStorage.getItem("access_token") ||
+        sessionStorage.getItem("access_token");
+      const storedRefreshToken =
+        localStorage.getItem("refresh_token") ||
+        sessionStorage.getItem("refresh_token");
       const storedUser = localStorage.getItem("user");
 
-      if (storedToken && storedUser) {
+      if (storedAccessToken && storedRefreshToken && storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
-          state.token = storedToken;
+          state.accessToken = storedAccessToken;
+          state.refreshToken = storedRefreshToken;
           state.user = parsedUser;
           state.isAuthenticated = true;
         } catch (error) {
           console.error("Error parsing stored user data:", error);
           // Clear invalid data
-          localStorage.removeItem("authToken");
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
           localStorage.removeItem("user");
+          sessionStorage.removeItem("access_token");
+          sessionStorage.removeItem("refresh_token");
         }
       }
     },
@@ -160,7 +161,8 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.token = action.payload.token;
+        state.accessToken = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken;
         state.user = action.payload.user;
         state.isAuthenticated = true;
         state.error = null;
@@ -176,7 +178,8 @@ const authSlice = createSlice({
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.isLoading = false;
-        state.token = null;
+        state.accessToken = null;
+        state.refreshToken = null;
         state.user = null;
         state.isAuthenticated = false;
         state.error = null;
@@ -191,6 +194,7 @@ const authSlice = createSlice({
 // Export actions
 export const {
   setCredentials,
+  updateAccessToken,
   clearCredentials,
   setLoading,
   setError,
@@ -203,8 +207,10 @@ export default authSlice.reducer;
 // Selectors
 export const selectCurrentUser = (state: { auth: AuthState }) =>
   state.auth.user;
-export const selectCurrentToken = (state: { auth: AuthState }) =>
-  state.auth.token;
+export const selectAccessToken = (state: { auth: AuthState }) =>
+  state.auth.accessToken;
+export const selectRefreshToken = (state: { auth: AuthState }) =>
+  state.auth.refreshToken;
 export const selectIsAuthenticated = (state: { auth: AuthState }) =>
   state.auth.isAuthenticated;
 export const selectAuthLoading = (state: { auth: AuthState }) =>

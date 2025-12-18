@@ -4,42 +4,59 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Users,
-  Home,
-  Briefcase,
-  MapPin,
-  UserCheck,
+  FileText,
+  Inbox,
+  FolderOpen,
+  BookOpen,
+  MessageSquare,
+  Image,
+  BarChart3,
+  Mail,
+  FileCheck,
   Menu,
   X,
-  Network,
-  Activity,
-  Calendar,
-  UserCog,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/redux/useAuth";
 
-// Define navigation items with role restrictions
-const adminNavigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Overview", href: "/overview", icon: Home },
-  { name: "Members", href: "/members", icon: Users },
-  { name: "Families", href: "/families", icon: UserCheck },
-  { name: "Ministries", href: "/ministries", icon: UserCog },
-  { name: "Family Member Mapping", href: "/family-mapping", icon: Network },
-  { name: "Professions", href: "/professions", icon: Briefcase },
-  { name: "Locations", href: "/locations", icon: MapPin },
-  { name: "Activity Logs", href: "/activity-logs", icon: Activity },
+// Define navigation items with role restrictions for Magazine Platform
+const administratorNavigation = [
+  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+  { name: "Articles", href: "/admin/articles", icon: FileText },
+  { name: "Submissions", href: "/admin/submissions", icon: Inbox },
+  { name: "Categories", href: "/admin/categories", icon: FolderOpen },
+  { name: "Issues", href: "/admin/issues", icon: BookOpen },
+  { name: "Comments", href: "/admin/comments", icon: MessageSquare },
+  { name: "Media", href: "/admin/media", icon: Image },
+  { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { name: "Subscriptions", href: "/admin/subscriptions", icon: Mail },
+  { name: "Audit Logs", href: "/admin/audit-logs", icon: FileCheck },
 ];
 
-const flNavigation = [
-  { name: "Dashboard", href: "/family-dashboard", icon: LayoutDashboard },
-  { name: "My Family", href: "/families/my-family", icon: UserCheck },
-  { name: "Attendance", href: "/attendance", icon: Calendar },
+const editorNavigation = [
+  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+  { name: "Articles", href: "/admin/articles", icon: FileText },
+  { name: "Submissions", href: "/admin/submissions", icon: Inbox },
+  { name: "Categories", href: "/admin/categories", icon: FolderOpen },
+  { name: "Issues", href: "/admin/issues", icon: BookOpen },
+  { name: "Comments", href: "/admin/comments", icon: MessageSquare },
+  { name: "Media", href: "/admin/media", icon: Image },
+  { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
 ];
 
-const mlNavigation = [
-  { name: "Dashboard", href: "/ministry-dashboard", icon: LayoutDashboard },
-  { name: "My Ministry", href: "/ministries/my-ministry", icon: UserCog },
+const reviewerNavigation = [
+  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+  { name: "Submissions", href: "/admin/submissions", icon: Inbox },
+  { name: "My Reviews", href: "/admin/articles?filter=reviewed", icon: FileCheck },
+];
+
+const contributorNavigation = [
+  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+  { name: "My Articles", href: "/admin/articles", icon: FileText },
+  { name: "New Article", href: "/admin/articles/new", icon: FileText },
+  { name: "Categories", href: "/admin/categories", icon: FolderOpen },
+  { name: "Media", href: "/admin/media", icon: Image },
 ];
 
 const Sidebar = () => {
@@ -48,12 +65,23 @@ const Sidebar = () => {
   const { user } = useAuth();
 
   // Determine which navigation items to show based on user role
-  const navigation =
-    user?.role?.toLowerCase() === "admin"
-      ? adminNavigation
-      : user?.role?.toLowerCase() === "ml"
-      ? mlNavigation
-      : flNavigation;
+  const getRoleNavigation = () => {
+    const roleName = user?.role?.name?.toLowerCase();
+    switch (roleName) {
+      case "administrator":
+        return administratorNavigation;
+      case "editor":
+        return editorNavigation;
+      case "reviewer":
+        return reviewerNavigation;
+      case "contributor":
+        return contributorNavigation;
+      default:
+        return contributorNavigation;
+    }
+  };
+
+  const navigation = getRoleNavigation();
 
   return (
     <>
@@ -97,7 +125,7 @@ const Sidebar = () => {
                 <span className="text-white font-bold text-sm">GY</span>
               </div>
               <span className="text-xl font-bold text-brand-gradient">
-                Gotera Youth
+                Zoe Magazine
               </span>
             </div>
           </div>
@@ -128,7 +156,7 @@ const Sidebar = () => {
           {/* Footer */}
           <div className="p-4 border-t">
             <div className="text-xs text-gray-500 text-center">
-              Gotera Youth Management System
+              Zoe Digital Magazine Admin
             </div>
           </div>
         </div>

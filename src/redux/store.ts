@@ -5,6 +5,7 @@ import { combineReducers } from "@reduxjs/toolkit";
 
 // Import slices
 import authReducer from "./slices/authSlice";
+import magazineReducer from "./slices/magazineSlice";
 
 // Persist config for auth
 const authPersistConfig = {
@@ -16,6 +17,7 @@ const authPersistConfig = {
 // Root reducer
 const rootReducer = combineReducers({
   auth: persistReducer(authPersistConfig, authReducer),
+  magazine: magazineReducer,
 });
 
 // Configure store
