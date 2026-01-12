@@ -1,57 +1,63 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useMutation, useQuery } from "@apollo/client/react";
 import {
+  IconEdit,
+  IconEye,
   IconPlus,
   IconSearch,
-  IconFilter,
-  IconEdit,
   IconTrash,
-  IconEye,
-  IconCalendar,
-  IconCheck,
-  IconX,
-} from '@tabler/icons-react';
-import { Card, CardContent, CardHeader } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Badge } from '../../components/ui/badge';
+} from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import LoadingPage from "../../components/ui/loading-page";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../components/ui/select';
-import { GET_ARTICLES, DELETE_ARTICLE } from '../../graphql/magazine-operations';
-import { setArticles, setArticlesLoading, removeArticle, setFilters } from '../../redux/slices/magazineSlice';
-import { RootState } from '../../redux/store';
-import { toast } from 'sonner';
-import LoadingPage from '../../components/ui/loading-page';
+} from "../../components/ui/select";
+import {
+  DELETE_ARTICLE,
+  GET_ARTICLES,
+} from "../../graphql/magazine-operations";
+import {
+  removeArticle,
+  setArticles,
+  setArticlesLoading,
+  setFilters,
+} from "../../redux/slices/magazineSlice";
+import { useAppSelector } from "../../redux/hooks";
 
 const ArticlesListPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { articles, articlesLoading, filters } = useSelector((state: RootState) => state.magazine);
-  
-  const [searchQuery, setSearchQuery] = useState(filters.searchQuery || '');
-  const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
-  const [categoryFilter, setCategoryFilter] = useState(filters.category || 'all');
+  const { articles, filters } = useAppSelector((state) => state.magazine);
+
+  const [searchQuery, setSearchQuery] = useState(filters.searchQuery || "");
+  const [statusFilter, setStatusFilter] = useState(filters.status || "all");
+  const [categoryFilter, setCategoryFilter] = useState(
+    filters.category || "all"
+  );
 
   // GraphQL Query
   const { data, loading, refetch } = useQuery(GET_ARTICLES, {
     variables: {
       filter: {
-        status: statusFilter !== 'all' ? statusFilter : undefined,
-        category: categoryFilter !== 'all' ? categoryFilter : undefined,
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        category: categoryFilter !== "all" ? categoryFilter : undefined,
         search: searchQuery || undefined,
       },
       pagination: {
         limit: 50,
       },
     },
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: "cache-and-network",
   });
 
   // Delete Mutation
@@ -87,32 +93,32 @@ const ArticlesListPage = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this article?')) {
+    if (confirm("Are you sure you want to delete this article?")) {
       try {
         await deleteArticleMutation({ variables: { id } });
         dispatch(removeArticle(id));
-        toast.success('Article deleted successfully');
+        toast.success("Article deleted successfully");
       } catch (error) {
-        toast.error('Failed to delete article');
-        console.error('Delete error:', error);
+        toast.error("Failed to delete article");
+        console.error("Delete error:", error);
       }
     }
   };
 
   const getStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
-      draft: 'bg-gray-500',
-      submitted: 'bg-blue-500',
-      in_review: 'bg-yellow-500',
-      rejected: 'bg-red-500',
-      approved: 'bg-green-500',
-      scheduled: 'bg-purple-500',
-      published: 'bg-emerald-500',
+      draft: "bg-gray-500",
+      submitted: "bg-blue-500",
+      in_review: "bg-yellow-500",
+      rejected: "bg-red-500",
+      approved: "bg-green-500",
+      scheduled: "bg-purple-500",
+      published: "bg-emerald-500",
     };
 
     return (
-      <Badge className={`${statusColors[status] || 'bg-gray-500'} text-white`}>
-        {status.replace('_', ' ').toUpperCase()}
+      <Badge className={`${statusColors[status] || "bg-gray-500"} text-white`}>
+        {status.replace("_", " ").toUpperCase()}
       </Badge>
     );
   };
@@ -129,7 +135,7 @@ const ArticlesListPage = () => {
           <h1 className="text-3xl font-bold">Articles</h1>
           <p className="text-muted-foreground">Manage your magazine articles</p>
         </div>
-        <Button onClick={() => navigate('/admin/articles/new')}>
+        <Button onClick={() => navigate("/admin/articles/new")}>
           <IconPlus className="mr-2 h-4 w-4" />
           New Article
         </Button>
@@ -149,7 +155,7 @@ const ArticlesListPage = () => {
                 className="pl-10"
               />
             </div>
-            
+
             <Select value={statusFilter} onValueChange={handleStatusFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by status" />
@@ -186,42 +192,54 @@ const ArticlesListPage = () => {
         {articles.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">No articles found. Create your first article!</p>
+              <p className="text-muted-foreground">
+                No articles found. Create your first article!
+              </p>
             </CardContent>
           </Card>
         ) : (
           articles.map((article) => (
-            <Card key={article.id} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={article.id}
+              className="hover:shadow-lg transition-shadow"
+            >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-xl font-semibold">
-                        {article.current_revision?.title || 'Untitled'}
+                        {article.current_revision?.title || "Untitled"}
                       </h3>
-                      {getStatusBadge(article.current_revision?.status || 'draft')}
+                      {getStatusBadge(
+                        article.current_revision?.status || "draft"
+                      )}
                       {article.featured && (
                         <Badge variant="outline" className="bg-yellow-100">
                           Featured
                         </Badge>
                       )}
                     </div>
-                    
+
                     <p className="text-muted-foreground mb-3 line-clamp-2">
-                      {article.current_revision?.excerpt || 'No excerpt available'}
+                      {article.current_revision?.excerpt ||
+                        "No excerpt available"}
                     </p>
-                    
+
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span>By {article.author?.display_name}</span>
                       <span>•</span>
                       <span>
-                        Created {new Date(article.created_at).toLocaleDateString()}
+                        Created{" "}
+                        {new Date(article.created_at).toLocaleDateString()}
                       </span>
                       {article.current_revision?.published_at && (
                         <>
                           <span>•</span>
                           <span>
-                            Published {new Date(article.current_revision.published_at).toLocaleDateString()}
+                            Published{" "}
+                            {new Date(
+                              article.current_revision.published_at
+                            ).toLocaleDateString()}
                           </span>
                         </>
                       )}
@@ -233,19 +251,23 @@ const ArticlesListPage = () => {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-2">
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => navigate(`/admin/articles/${article.id}/preview`)}
+                      onClick={() =>
+                        navigate(`/admin/articles/${article.id}/preview`)
+                      }
                     >
                       <IconEye className="h-4 w-4" />
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => navigate(`/admin/articles/${article.id}/edit`)}
+                      onClick={() =>
+                        navigate(`/admin/articles/${article.id}/edit`)
+                      }
                     >
                       <IconEdit className="h-4 w-4" />
                     </Button>
@@ -268,4 +290,3 @@ const ArticlesListPage = () => {
 };
 
 export default ArticlesListPage;
-

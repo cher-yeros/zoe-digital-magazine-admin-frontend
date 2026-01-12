@@ -46,16 +46,19 @@ const UserProfileDropdown = () => {
     // navigate("/settings");
   };
 
-  // Get user initials for avatar fallback
   const getUserInitials = () => {
-    if (user?.member?.full_name) {
-      const names = user.member.full_name.split(" ");
-      if (names.length >= 2) {
-        return `${names[0].charAt(0)}${names[names.length - 1].charAt(
+    const name = user?.display_name || user?.member?.full_name;
+    if (name) {
+      const parts = name.trim().split(" ");
+      if (parts.length >= 2) {
+        return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(
           0
         )}`.toUpperCase();
       }
-      return names[0].charAt(0).toUpperCase();
+      return parts[0].charAt(0).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
     }
     if (user?.phone) {
       return user.phone.slice(-2).toUpperCase();
@@ -63,13 +66,28 @@ const UserProfileDropdown = () => {
     return "U";
   };
 
-  // Get display name
   const getDisplayName = () => {
+    if (user?.display_name) {
+      return user.display_name;
+    }
     if (user?.member?.full_name) {
       return user.member.full_name;
     }
+    if (user?.email) {
+      return user.email;
+    }
     if (user?.phone) {
       return user.phone;
+    }
+    return "User";
+  };
+
+  const getRoleLabel = () => {
+    if (user?.role) {
+      return user.role;
+    }
+    if (user?.member?.role?.name) {
+      return user.member.role.name;
     }
     return "User";
   };
@@ -91,7 +109,7 @@ const UserProfileDropdown = () => {
               {getDisplayName()}
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              {user?.member?.role?.name || "Family Member"}
+              {getRoleLabel()}
             </div>
           </div>
           <ChevronDown className="h-4 w-4 text-gray-500 hidden md:block" />
@@ -118,10 +136,10 @@ const UserProfileDropdown = () => {
                   {getDisplayName()}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                  {user?.phone}
+                  {user?.email || user?.phone}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                  {user?.member?.role?.name || "Family Member"}
+                  {getRoleLabel()}
                 </div>
               </div>
             </div>

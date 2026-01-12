@@ -893,8 +893,11 @@ export const LOGIN = gql`
 `;
 
 export const LOGOUT = gql`
-  mutation Logout {
-    logout
+  mutation Logout($input: LogoutInput!) {
+    logout(input: $input) {
+      success
+      message
+    }
   }
 `;
 

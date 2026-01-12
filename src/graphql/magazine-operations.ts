@@ -95,7 +95,7 @@ export const ARTICLE_DETAIL_FRAGMENT = gql`
       published_at
       editor_notes
       created_at
-      created_by {
+      creator {
         id
         display_name
       }
@@ -119,7 +119,7 @@ export const REVISION_FRAGMENT = gql`
     scheduled_for
     published_at
     created_at
-    created_by {
+    creator {
       id
       display_name
       avatar_url
@@ -669,7 +669,10 @@ export const GET_COMMENTS = gql`
 `;
 
 export const GET_ARTICLE_COMMENTS = gql`
-  query GetArticleComments($articleSlug: String!, $pagination: PaginationInput) {
+  query GetArticleComments(
+    $articleSlug: String!
+    $pagination: PaginationInput
+  ) {
     articleComments(articleSlug: $articleSlug, pagination: $pagination) {
       data {
         ...CommentFragment
@@ -803,7 +806,7 @@ export const MARK_NOTIFICATION_READ = gql`
 // ============================================
 
 export const GET_ANALYTICS_OVERVIEW = gql`
-  query GetAnalyticsOverview($since: String, $until: String) {
+  query GetAnalyticsOverview($since: DateTime, $until: DateTime) {
     analyticsOverview(since: $since, until: $until) {
       total_articles
       total_published
@@ -816,7 +819,7 @@ export const GET_ANALYTICS_OVERVIEW = gql`
 `;
 
 export const GET_TOP_ARTICLES = gql`
-  query GetTopArticles($since: String, $metric: String, $limit: Int) {
+  query GetTopArticles($since: DateTime, $metric: String, $limit: Int) {
     topArticles(since: $since, metric: $metric, limit: $limit) {
       article {
         ...ArticleSummaryFragment
@@ -831,7 +834,7 @@ export const GET_TOP_ARTICLES = gql`
 `;
 
 export const GET_CONTRIBUTOR_STATS = gql`
-  query GetContributorStats($since: String) {
+  query GetContributorStats($since: DateTime) {
     contributorStats(since: $since) {
       user {
         ...UserFragment
@@ -850,7 +853,10 @@ export const GET_CONTRIBUTOR_STATS = gql`
 // ============================================
 
 export const GET_AUDIT_LOGS = gql`
-  query GetAuditLogs($filter: AuditLogFilterInput, $pagination: PaginationInput) {
+  query GetAuditLogs(
+    $filter: AuditLogFilterInput
+    $pagination: PaginationInput
+  ) {
     auditLogs(filter: $filter, pagination: $pagination) {
       data {
         ...AuditLogFragment
@@ -898,4 +904,3 @@ export const SEARCH = gql`
   ${USER_FRAGMENT}
   ${ISSUE_FRAGMENT}
 `;
-

@@ -1,46 +1,46 @@
-import { useState, useEffect } from 'react';
-import { useQuery } from '@apollo/client';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  IconSearch,
-  IconFilter,
-  IconFileCheck,
-} from '@tabler/icons-react';
-import { Card, CardContent } from '../../components/ui/card';
-import { Input } from '../../components/ui/input';
-import { Badge } from '../../components/ui/badge';
+import { useQuery } from "@apollo/client/react";
+import { IconFileCheck, IconSearch } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Badge } from "../../components/ui/badge";
+import { Card, CardContent } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import LoadingPage from "../../components/ui/loading-page";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../components/ui/select';
-import { GET_AUDIT_LOGS } from '../../graphql/magazine-operations';
-import { setAuditLogs, setAuditLogsLoading } from '../../redux/slices/magazineSlice';
-import { RootState } from '../../redux/store';
-import LoadingPage from '../../components/ui/loading-page';
-
+} from "../../components/ui/select";
+import { GET_AUDIT_LOGS } from "../../graphql/magazine-operations";
+import {
+  setAuditLogs,
+  setAuditLogsLoading,
+} from "../../redux/slices/magazineSlice";
+import type { RootState } from "../../redux/store";
 const AuditLogsPage = () => {
   const dispatch = useDispatch();
-  const { auditLogs, auditLogsLoading } = useSelector((state: RootState) => state.magazine);
-  
-  const [searchQuery, setSearchQuery] = useState('');
-  const [actionFilter, setActionFilter] = useState('all');
-  const [targetTypeFilter, setTargetTypeFilter] = useState('all');
+  const { auditLogs, auditLogsLoading } = useSelector(
+    (state: RootState) => state.magazine
+  );
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [actionFilter, setActionFilter] = useState("all");
+  const [targetTypeFilter, setTargetTypeFilter] = useState("all");
 
   // GraphQL Query
   const { data, loading } = useQuery(GET_AUDIT_LOGS, {
     variables: {
       filter: {
-        action: actionFilter !== 'all' ? actionFilter : undefined,
-        target_type: targetTypeFilter !== 'all' ? targetTypeFilter : undefined,
+        action: actionFilter !== "all" ? actionFilter : undefined,
+        target_type: targetTypeFilter !== "all" ? targetTypeFilter : undefined,
       },
       pagination: {
         limit: 100,
       },
     },
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: "cache-and-network",
   });
 
   useEffect(() => {
@@ -54,24 +54,27 @@ const AuditLogsPage = () => {
     dispatch(setAuditLogsLoading(loading));
   }, [loading, dispatch]);
 
-  const filteredLogs = auditLogs.filter(log =>
-    log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.actor?.display_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredLogs = auditLogs.filter(
+    (log) =>
+      log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.actor?.display_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getActionBadge = (action: string) => {
     const actionColors: Record<string, string> = {
-      create: 'bg-green-500',
-      update: 'bg-blue-500',
-      delete: 'bg-red-500',
-      publish: 'bg-purple-500',
-      approve: 'bg-emerald-500',
-      reject: 'bg-orange-500',
+      create: "bg-green-500",
+      update: "bg-blue-500",
+      delete: "bg-red-500",
+      publish: "bg-purple-500",
+      approve: "bg-emerald-500",
+      reject: "bg-orange-500",
     };
 
-    const actionType = action.split('.')[0];
+    const actionType = action.split(".")[0];
     return (
-      <Badge className={`${actionColors[actionType] || 'bg-gray-500'} text-white`}>
+      <Badge
+        className={`${actionColors[actionType] || "bg-gray-500"} text-white`}
+      >
         {action}
       </Badge>
     );
@@ -105,7 +108,7 @@ const AuditLogsPage = () => {
                 className="pl-10"
               />
             </div>
-            
+
             <Select value={actionFilter} onValueChange={setActionFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by action" />
@@ -121,7 +124,10 @@ const AuditLogsPage = () => {
               </SelectContent>
             </Select>
 
-            <Select value={targetTypeFilter} onValueChange={setTargetTypeFilter}>
+            <Select
+              value={targetTypeFilter}
+              onValueChange={setTargetTypeFilter}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
@@ -157,7 +163,9 @@ const AuditLogsPage = () => {
                   <tr>
                     <td colSpan={5} className="text-center py-12">
                       <IconFileCheck className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-muted-foreground">No audit logs found</p>
+                      <p className="text-muted-foreground">
+                        No audit logs found
+                      </p>
                     </td>
                   </tr>
                 ) : (
@@ -167,7 +175,7 @@ const AuditLogsPage = () => {
                       <td className="p-4">
                         <div>
                           <p className="font-semibold">
-                            {log.actor?.display_name || 'System'}
+                            {log.actor?.display_name || "System"}
                           </p>
                         </div>
                       </td>
@@ -207,4 +215,3 @@ const AuditLogsPage = () => {
 };
 
 export default AuditLogsPage;
-

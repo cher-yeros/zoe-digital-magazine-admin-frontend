@@ -3,8 +3,8 @@ import { useAuth } from "@/redux/useAuth";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: "admin" | "fl" | "ml";
-  allowedRoles?: ("admin" | "fl" | "ml")[];
+  requiredRole?: "administrator" | "editor" | "reviewer" | "contributor";
+  allowedRoles?: ("administrator" | "editor" | "reviewer" | "contributor")[];
 }
 
 const ProtectedRoute = ({
@@ -23,21 +23,19 @@ const ProtectedRoute = ({
   // Check role-based access
   const userRole = user.role?.toLowerCase();
 
-  if (requiredRole && userRole !== requiredRole) {
-    // If user doesn't have the required role, redirect based on their actual role
-    if (userRole === "fl") {
-      return <Navigate to="/family-dashboard" replace />;
-    } else {
-      return <Navigate to="/dashboard" replace />;
-    }
+  if (requiredRole && userRole !== requiredRole.toLowerCase()) {
+    // If user doesn't have the required role, redirect to dashboard with error message
+    return <Navigate to="/admin/dashboard" state={{ error: "Insufficient permissions" }} replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(userRole as "admin" | "fl")) {
-    // If user doesn't have any of the allowed roles, redirect based on their actual role
-    if (userRole === "fl") {
-      return <Navigate to="/family-dashboard" replace />;
-    } else {
-      return <Navigate to="/dashboard" replace />;
+  if (allowedRoles && allowedRoles.length > 0) {
+    const hasAllowedRole = allowedRoles.some(
+      (role) => role.toLowerCase() === userRole
+    );
+    
+    if (!hasAllowedRole) {
+      // If user doesn't have any of the allowed roles, redirect to dashboard
+      return <Navigate to="/admin/dashboard" state={{ error: "Insufficient permissions" }} replace />;
     }
   }
 

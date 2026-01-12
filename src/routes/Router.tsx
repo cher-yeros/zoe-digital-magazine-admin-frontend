@@ -1,23 +1,33 @@
 import { lazy } from "react";
 import { Navigate } from "react-router";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
-import RoleBasedDashboard from "@/components/shared/RoleBasedDashboard";
 
 // Layouts
 const FullLayout = lazy(() => import("../layouts/full/FullLayout"));
 const BlankLayout = lazy(() => import("../layouts/blank/BlankLayout"));
 
 // Pages - Magazine Platform
-const MagazineDashboard = lazy(() => import("../views/dashboard/MagazineDashboard"));
-const ArticlesListPage = lazy(() => import("../views/articles/ArticlesListPage"));
-const ArticleEditorPage = lazy(() => import("../views/articles/ArticleEditorPage"));
+const MagazineDashboard = lazy(
+  () => import("../views/dashboard/MagazineDashboard")
+);
+const ArticlesListPage = lazy(
+  () => import("../views/articles/ArticlesListPage")
+);
+const ArticleEditorPage = lazy(
+  () => import("../views/articles/ArticleEditorPage")
+);
 const SubmissionsPage = lazy(() => import("../views/articles/SubmissionsPage"));
-const UsersManagementPage = lazy(() => import("../views/users/UsersManagementPage"));
+const UsersManagementPage = lazy(
+  () => import("../views/users/UsersManagementPage")
+);
 const CategoriesPage = lazy(() => import("../views/categories/CategoriesPage"));
 const IssuesPage = lazy(() => import("../views/issues/IssuesPage"));
 const CommentsPage = lazy(() => import("../views/comments/CommentsPage"));
+const MediaLibraryPage = lazy(() => import("../views/media/MediaLibraryPage"));
 const AuditLogsPage = lazy(() => import("../views/audit/AuditLogsPage"));
-const SubscriptionsPage = lazy(() => import("../views/subscriptions/SubscriptionsPage"));
+const SubscriptionsPage = lazy(
+  () => import("../views/subscriptions/SubscriptionsPage")
+);
 const Login = lazy(() => import("../views/authentication/Login"));
 
 const Router = [
@@ -129,7 +139,7 @@ const Router = [
         path: "/admin/media",
         element: (
           <ProtectedRoute>
-            <MagazineDashboard />
+            <MediaLibraryPage />
           </ProtectedRoute>
         ),
       },
@@ -167,6 +177,10 @@ const Router = [
       { path: "login", element: <Login /> },
       { path: "*", element: <Navigate to="/auth/login" /> },
     ],
+  },
+  {
+    path: "*",
+    element: <Navigate to="/auth/login" replace />,
   },
 ];
 

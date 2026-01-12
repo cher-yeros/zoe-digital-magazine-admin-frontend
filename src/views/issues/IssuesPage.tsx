@@ -1,20 +1,17 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useMutation, useQuery } from "@apollo/client/react";
 import {
-  IconPlus,
-  IconEdit,
-  IconTrash,
   IconBook,
   IconCalendar,
-} from '@tabler/icons-react';
-import { Card, CardContent, CardHeader } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Textarea } from '../../components/ui/textarea';
-import { Label } from '../../components/ui/label';
-import { Badge } from '../../components/ui/badge';
+  IconEdit,
+  IconPlus,
+  IconTrash,
+} from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent, CardHeader } from "../../components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -22,35 +19,41 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../../components/ui/dialog';
+} from "../../components/ui/dialog";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import LoadingPage from "../../components/ui/loading-page";
 import {
-  GET_ISSUES,
   CREATE_ISSUE,
-  UPDATE_ISSUE,
   DELETE_ISSUE,
-} from '../../graphql/magazine-operations';
-import { setIssues, addIssue, updateIssue, removeIssue } from '../../redux/slices/magazineSlice';
-import { RootState } from '../../redux/store';
-import { toast } from 'sonner';
-import LoadingPage from '../../components/ui/loading-page';
+  GET_ISSUES,
+  UPDATE_ISSUE,
+} from "../../graphql/magazine-operations";
+import {
+  addIssue,
+  removeIssue,
+  setIssues,
+  updateIssue,
+} from "../../redux/slices/magazineSlice";
+import type { RootState } from "../../redux/store";
 
 const IssuesPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { issues } = useSelector((state: RootState) => state.magazine);
-  
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingIssue, setEditingIssue] = useState<any>(null);
-  
+
   // Form state
-  const [title, setTitle] = useState('');
-  const [slug, setSlug] = useState('');
-  const [publishedAt, setPublishedAt] = useState('');
-  const [coverImageUrl, setCoverImageUrl] = useState('');
+  const [title, setTitle] = useState("");
+  const [slug, setSlug] = useState("");
+  const [publishedAt, setPublishedAt] = useState("");
+  const [coverImageUrl, setCoverImageUrl] = useState("");
 
   // GraphQL Queries
   const { data, loading, refetch } = useQuery(GET_ISSUES, {
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: "cache-and-network",
   });
 
   // Mutations
@@ -69,9 +72,9 @@ const IssuesPage = () => {
     if (title && !editingIssue) {
       const generatedSlug = title
         .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
         .trim();
       setSlug(generatedSlug);
     }
@@ -82,8 +85,8 @@ const IssuesPage = () => {
       setEditingIssue(issue);
       setTitle(issue.title);
       setSlug(issue.slug);
-      setPublishedAt(issue.published_at || '');
-      setCoverImageUrl(issue.cover_image_url || '');
+      setPublishedAt(issue.published_at || "");
+      setCoverImageUrl(issue.cover_image_url || "");
     } else {
       resetForm();
     }
@@ -97,20 +100,20 @@ const IssuesPage = () => {
   };
 
   const resetForm = () => {
-    setTitle('');
-    setSlug('');
-    setPublishedAt('');
-    setCoverImageUrl('');
+    setTitle("");
+    setSlug("");
+    setPublishedAt("");
+    setCoverImageUrl("");
   };
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      toast.error('Issue title is required');
+      toast.error("Issue title is required");
       return;
     }
 
     if (!slug.trim()) {
-      toast.error('Slug is required');
+      toast.error("Slug is required");
       return;
     }
 
@@ -128,7 +131,7 @@ const IssuesPage = () => {
           },
         });
         dispatch(updateIssue(data.updateIssue));
-        toast.success('Issue updated successfully');
+        toast.success("Issue updated successfully");
       } else {
         const { data } = await createIssueMutation({
           variables: {
@@ -141,26 +144,26 @@ const IssuesPage = () => {
           },
         });
         dispatch(addIssue(data.createIssue));
-        toast.success('Issue created successfully');
+        toast.success("Issue created successfully");
       }
       closeDialog();
       refetch();
     } catch (error) {
-      toast.error('Failed to save issue');
-      console.error('Save error:', error);
+      toast.error("Failed to save issue");
+      console.error("Save error:", error);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this issue?')) {
+    if (confirm("Are you sure you want to delete this issue?")) {
       try {
         await deleteIssueMutation({ variables: { id } });
         dispatch(removeIssue(id));
-        toast.success('Issue deleted successfully');
+        toast.success("Issue deleted successfully");
         refetch();
       } catch (error) {
-        toast.error('Failed to delete issue');
-        console.error('Delete error:', error);
+        toast.error("Failed to delete issue");
+        console.error("Delete error:", error);
       }
     }
   };
@@ -175,9 +178,7 @@ const IssuesPage = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Magazine Issues</h1>
-          <p className="text-muted-foreground">
-            Manage your magazine editions
-          </p>
+          <p className="text-muted-foreground">Manage your magazine editions</p>
         </div>
         <Button onClick={() => openDialog()}>
           <IconPlus className="mr-2 h-4 w-4" />
@@ -215,8 +216,12 @@ const IssuesPage = () => {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-1">{issue.title}</h3>
-                    <p className="text-sm text-muted-foreground">/{issue.slug}</p>
+                    <h3 className="text-lg font-semibold mb-1">
+                      {issue.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      /{issue.slug}
+                    </p>
                     {issue.published_at && (
                       <div className="flex items-center gap-1 mt-2">
                         <IconCalendar className="h-3 w-3" />
@@ -226,7 +231,10 @@ const IssuesPage = () => {
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                  <div
+                    className="flex gap-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <Button
                       size="sm"
                       variant="ghost"
@@ -254,15 +262,15 @@ const IssuesPage = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingIssue ? 'Edit Issue' : 'Add New Issue'}
+              {editingIssue ? "Edit Issue" : "Add New Issue"}
             </DialogTitle>
             <DialogDescription>
               {editingIssue
-                ? 'Update magazine issue information'
-                : 'Create a new magazine edition'}
+                ? "Update magazine issue information"
+                : "Create a new magazine edition"}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="title">Title *</Label>
@@ -311,7 +319,7 @@ const IssuesPage = () => {
               Cancel
             </Button>
             <Button onClick={handleSubmit}>
-              {editingIssue ? 'Update' : 'Create'} Issue
+              {editingIssue ? "Update" : "Create"} Issue
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -321,4 +329,3 @@ const IssuesPage = () => {
 };
 
 export default IssuesPage;
-

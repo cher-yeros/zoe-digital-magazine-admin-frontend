@@ -4,6 +4,7 @@ import { Provider } from "react-redux";
 import { ApolloProvider } from "@apollo/client/react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Toaster } from "sonner";
 import { PersistGate } from "redux-persist/integration/react";
 import App from "./App.tsx";
 import { persistor, store } from "./redux/store";
@@ -15,6 +16,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <Provider store={store}>
       <PersistGate persistor={persistor}>
         <ApolloProvider client={apolloClient}>
+          <Toaster richColors position="top-right" />
           <ToastContainer theme="colored" autoClose={500} />
           <App />
         </ApolloProvider>

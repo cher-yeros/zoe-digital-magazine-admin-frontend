@@ -868,7 +868,7 @@ export const useLogout = () => {
   const handleLogout = async () => {
     try {
       dispatch(setError(null)); // Clear any previous errors
-      await logout();
+      await logout({ variables: { input: {} } });
     } catch (error) {
       console.error("Error logging out:", error);
       // Even if logout fails on server, clear local data

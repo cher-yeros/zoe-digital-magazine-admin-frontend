@@ -100,6 +100,19 @@ const authSlice = createSlice({
       state.accessToken = action.payload;
     },
 
+    updateTokens: (
+      state,
+      action: PayloadAction<{ accessToken: string; refreshToken?: string }>
+    ) => {
+      state.accessToken = action.payload.accessToken;
+      if (action.payload.refreshToken) {
+        state.refreshToken = action.payload.refreshToken;
+      }
+      if (state.user) {
+        state.isAuthenticated = true;
+      }
+    },
+
     clearCredentials: (state) => {
       state.accessToken = null;
       state.refreshToken = null;
@@ -195,6 +208,7 @@ const authSlice = createSlice({
 export const {
   setCredentials,
   updateAccessToken,
+  updateTokens,
   clearCredentials,
   setLoading,
   setError,

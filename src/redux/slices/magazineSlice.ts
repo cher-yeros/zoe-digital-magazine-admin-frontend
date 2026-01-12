@@ -37,7 +37,7 @@ export interface ArticleRevision {
   scheduled_for?: string;
   published_at?: string;
   created_at: string;
-  created_by?: User;
+  creator?: User;
 }
 
 export interface Article {

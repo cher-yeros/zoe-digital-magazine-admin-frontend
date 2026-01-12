@@ -48,7 +48,11 @@ const editorNavigation = [
 const reviewerNavigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Submissions", href: "/admin/submissions", icon: Inbox },
-  { name: "My Reviews", href: "/admin/articles?filter=reviewed", icon: FileCheck },
+  {
+    name: "My Reviews",
+    href: "/admin/articles?filter=reviewed",
+    icon: FileCheck,
+  },
 ];
 
 const contributorNavigation = [
@@ -66,7 +70,7 @@ const Sidebar = () => {
 
   // Determine which navigation items to show based on user role
   const getRoleNavigation = () => {
-    const roleName = user?.role?.name?.toLowerCase();
+    const roleName = user?.role?.toLowerCase();
     switch (roleName) {
       case "administrator":
         return administratorNavigation;

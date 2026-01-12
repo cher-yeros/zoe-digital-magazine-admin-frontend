@@ -1,17 +1,15 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import { useDispatch, useSelector } from 'react-redux';
+import { useMutation, useQuery } from "@apollo/client/react";
 import {
-  IconPlus,
   IconEdit,
-  IconTrash,
   IconFolderOpen,
-} from '@tabler/icons-react';
-import { Card, CardContent, CardHeader } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Textarea } from '../../components/ui/textarea';
-import { Label } from '../../components/ui/label';
+  IconPlus,
+  IconTrash,
+} from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "sonner";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent, CardHeader } from "../../components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -19,33 +17,40 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../../components/ui/dialog';
+} from "../../components/ui/dialog";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import LoadingPage from "../../components/ui/loading-page";
+import { Textarea } from "../../components/ui/textarea";
 import {
-  GET_CATEGORIES,
   CREATE_CATEGORY,
-  UPDATE_CATEGORY,
   DELETE_CATEGORY,
-} from '../../graphql/magazine-operations';
-import { setCategories, addCategory, updateCategory, removeCategory } from '../../redux/slices/magazineSlice';
-import { RootState } from '../../redux/store';
-import { toast } from 'sonner';
-import LoadingPage from '../../components/ui/loading-page';
+  GET_CATEGORIES,
+  UPDATE_CATEGORY,
+} from "../../graphql/magazine-operations";
+import {
+  addCategory,
+  removeCategory,
+  setCategories,
+  updateCategory,
+} from "../../redux/slices/magazineSlice";
+import type { RootState } from "../../redux/store";
 
 const CategoriesPage = () => {
   const dispatch = useDispatch();
   const { categories } = useSelector((state: RootState) => state.magazine);
-  
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
-  
+
   // Form state
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [description, setDescription] = useState('');
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [description, setDescription] = useState("");
 
   // GraphQL Queries
   const { data, loading, refetch } = useQuery(GET_CATEGORIES, {
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: "cache-and-network",
   });
 
   // Mutations
@@ -64,9 +69,9 @@ const CategoriesPage = () => {
     if (name && !editingCategory) {
       const generatedSlug = name
         .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
         .trim();
       setSlug(generatedSlug);
     }
@@ -77,7 +82,7 @@ const CategoriesPage = () => {
       setEditingCategory(category);
       setName(category.name);
       setSlug(category.slug);
-      setDescription(category.description || '');
+      setDescription(category.description || "");
     } else {
       resetForm();
     }
@@ -91,19 +96,19 @@ const CategoriesPage = () => {
   };
 
   const resetForm = () => {
-    setName('');
-    setSlug('');
-    setDescription('');
+    setName("");
+    setSlug("");
+    setDescription("");
   };
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      toast.error('Category name is required');
+      toast.error("Category name is required");
       return;
     }
 
     if (!slug.trim()) {
-      toast.error('Slug is required');
+      toast.error("Slug is required");
       return;
     }
 
@@ -120,7 +125,7 @@ const CategoriesPage = () => {
           },
         });
         dispatch(updateCategory(data.updateCategory));
-        toast.success('Category updated successfully');
+        toast.success("Category updated successfully");
       } else {
         const { data } = await createCategoryMutation({
           variables: {
@@ -132,26 +137,26 @@ const CategoriesPage = () => {
           },
         });
         dispatch(addCategory(data.createCategory));
-        toast.success('Category created successfully');
+        toast.success("Category created successfully");
       }
       closeDialog();
       refetch();
     } catch (error) {
-      toast.error('Failed to save category');
-      console.error('Save error:', error);
+      toast.error("Failed to save category");
+      console.error("Save error:", error);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this category?')) {
+    if (confirm("Are you sure you want to delete this category?")) {
       try {
         await deleteCategoryMutation({ variables: { id } });
         dispatch(removeCategory(id));
-        toast.success('Category deleted successfully');
+        toast.success("Category deleted successfully");
         refetch();
       } catch (error) {
-        toast.error('Failed to delete category');
-        console.error('Delete error:', error);
+        toast.error("Failed to delete category");
+        console.error("Delete error:", error);
       }
     }
   };
@@ -189,7 +194,10 @@ const CategoriesPage = () => {
           </Card>
         ) : (
           categories.map((category) => (
-            <Card key={category.id} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={category.id}
+              className="hover:shadow-lg transition-shadow"
+            >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -198,7 +206,9 @@ const CategoriesPage = () => {
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold">{category.name}</h3>
-                      <p className="text-sm text-muted-foreground">/{category.slug}</p>
+                      <p className="text-sm text-muted-foreground">
+                        /{category.slug}
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -236,15 +246,15 @@ const CategoriesPage = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingCategory ? 'Edit Category' : 'Add New Category'}
+              {editingCategory ? "Edit Category" : "Add New Category"}
             </DialogTitle>
             <DialogDescription>
               {editingCategory
-                ? 'Update category information'
-                : 'Create a new category for organizing articles'}
+                ? "Update category information"
+                : "Create a new category for organizing articles"}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="name">Name *</Label>
@@ -284,7 +294,7 @@ const CategoriesPage = () => {
               Cancel
             </Button>
             <Button onClick={handleSubmit}>
-              {editingCategory ? 'Update' : 'Create'} Category
+              {editingCategory ? "Update" : "Create"} Category
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -294,4 +304,3 @@ const CategoriesPage = () => {
 };
 
 export default CategoriesPage;
-

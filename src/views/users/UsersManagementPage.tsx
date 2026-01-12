@@ -1,18 +1,17 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
-import { useDispatch, useSelector } from 'react-redux';
+import { useMutation, useQuery } from "@apollo/client/react";
 import {
+  IconEdit,
+  IconMail,
   IconPlus,
   IconSearch,
-  IconEdit,
   IconTrash,
-  IconUserPlus,
-  IconMail,
-} from '@tabler/icons-react';
-import { Card, CardContent } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Badge } from '../../components/ui/badge';
+} from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "sonner";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent } from "../../components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -20,56 +19,64 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../../components/ui/dialog';
-import { Label } from '../../components/ui/label';
+} from "../../components/ui/dialog";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import LoadingPage from "../../components/ui/loading-page";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../components/ui/select';
-import { Switch } from '../../components/ui/switch';
+} from "../../components/ui/select";
+import { Switch } from "../../components/ui/switch";
 import {
-  GET_USERS,
-  GET_ROLES,
   CREATE_USER,
-  UPDATE_USER,
   DELETE_USER,
+  GET_ROLES,
+  GET_USERS,
   INVITE_USER,
-} from '../../graphql/magazine-operations';
-import { setUsers, setUsersLoading, addUser, updateUser, removeUser } from '../../redux/slices/magazineSlice';
-import { RootState } from '../../redux/store';
-import { toast } from 'sonner';
-import LoadingPage from '../../components/ui/loading-page';
+  UPDATE_USER,
+} from "../../graphql/magazine-operations";
+import {
+  addUser,
+  removeUser,
+  setUsers,
+  setUsersLoading,
+  updateUser,
+} from "../../redux/slices/magazineSlice";
+import type { RootState } from "../../redux/store";
 
 const UsersManagementPage = () => {
   const dispatch = useDispatch();
-  const { users, usersLoading } = useSelector((state: RootState) => state.magazine);
-  
-  const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
+  const { users, usersLoading } = useSelector(
+    (state: RootState) => state.magazine
+  );
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
-  
+
   // Form state
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [bio, setBio] = useState('');
-  const [selectedRole, setSelectedRole] = useState('');
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [bio, setBio] = useState("");
+  const [selectedRole, setSelectedRole] = useState("");
   const [isActive, setIsActive] = useState(true);
-  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteEmail, setInviteEmail] = useState("");
 
   // GraphQL Queries
   const { data, loading, refetch } = useQuery(GET_USERS, {
     variables: {
       filter: {
-        role: roleFilter !== 'all' ? roleFilter : undefined,
+        role: roleFilter !== "all" ? roleFilter : undefined,
       },
     },
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: "cache-and-network",
   });
 
   const { data: rolesData } = useQuery(GET_ROLES);
@@ -91,18 +98,19 @@ const UsersManagementPage = () => {
     dispatch(setUsersLoading(loading));
   }, [loading, dispatch]);
 
-  const filteredUsers = users.filter(user =>
-    user.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      user.display_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const openDialog = (user?: any) => {
     if (user) {
       setEditingUser(user);
-      setEmail(user.email || '');
-      setPhone(user.phone || '');
+      setEmail(user.email || "");
+      setPhone(user.phone || "");
       setDisplayName(user.display_name);
-      setBio(user.bio || '');
+      setBio(user.bio || "");
       setSelectedRole(user.role.id);
       setIsActive(user.is_active);
     } else {
@@ -118,27 +126,27 @@ const UsersManagementPage = () => {
   };
 
   const resetForm = () => {
-    setEmail('');
-    setPhone('');
-    setDisplayName('');
-    setBio('');
-    setSelectedRole('');
+    setEmail("");
+    setPhone("");
+    setDisplayName("");
+    setBio("");
+    setSelectedRole("");
     setIsActive(true);
   };
 
   const handleSubmit = async () => {
     if (!displayName.trim()) {
-      toast.error('Display name is required');
+      toast.error("Display name is required");
       return;
     }
 
     if (!email && !phone) {
-      toast.error('Email or phone is required');
+      toast.error("Email or phone is required");
       return;
     }
 
     if (!selectedRole) {
-      toast.error('Role is required');
+      toast.error("Role is required");
       return;
     }
 
@@ -158,7 +166,7 @@ const UsersManagementPage = () => {
           },
         });
         dispatch(updateUser(data.updateUser));
-        toast.success('User updated successfully');
+        toast.success("User updated successfully");
       } else {
         const { data } = await createUserMutation({
           variables: {
@@ -173,33 +181,33 @@ const UsersManagementPage = () => {
           },
         });
         dispatch(addUser(data.createUser));
-        toast.success('User created successfully');
+        toast.success("User created successfully");
       }
       closeDialog();
       refetch();
     } catch (error) {
-      toast.error('Failed to save user');
-      console.error('Save error:', error);
+      toast.error("Failed to save user");
+      console.error("Save error:", error);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this user?')) {
+    if (confirm("Are you sure you want to delete this user?")) {
       try {
         await deleteUserMutation({ variables: { id } });
         dispatch(removeUser(id));
-        toast.success('User deleted successfully');
+        toast.success("User deleted successfully");
         refetch();
       } catch (error) {
-        toast.error('Failed to delete user');
-        console.error('Delete error:', error);
+        toast.error("Failed to delete user");
+        console.error("Delete error:", error);
       }
     }
   };
 
   const handleInvite = async () => {
     if (!inviteEmail.trim()) {
-      toast.error('Email is required');
+      toast.error("Email is required");
       return;
     }
 
@@ -211,26 +219,30 @@ const UsersManagementPage = () => {
           },
         },
       });
-      toast.success('Invitation sent successfully!');
+      toast.success("Invitation sent successfully!");
       setIsInviteDialogOpen(false);
-      setInviteEmail('');
+      setInviteEmail("");
     } catch (error) {
-      toast.error('Failed to send invitation');
-      console.error('Invite error:', error);
+      toast.error("Failed to send invitation");
+      console.error("Invite error:", error);
     }
   };
 
   const getRoleBadge = (roleName: string) => {
     const roleColors: Record<string, string> = {
-      administrator: 'bg-red-500',
-      editor: 'bg-purple-500',
-      reviewer: 'bg-blue-500',
-      contributor: 'bg-green-500',
-      reader: 'bg-gray-500',
+      administrator: "bg-red-500",
+      editor: "bg-purple-500",
+      reviewer: "bg-blue-500",
+      contributor: "bg-green-500",
+      reader: "bg-gray-500",
     };
 
     return (
-      <Badge className={`${roleColors[roleName.toLowerCase()] || 'bg-gray-500'} text-white`}>
+      <Badge
+        className={`${
+          roleColors[roleName.toLowerCase()] || "bg-gray-500"
+        } text-white`}
+      >
         {roleName}
       </Badge>
     );
@@ -276,7 +288,7 @@ const UsersManagementPage = () => {
                 className="pl-10"
               />
             </div>
-            
+
             <Select value={roleFilter} onValueChange={setRoleFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by role" />
@@ -312,7 +324,10 @@ const UsersManagementPage = () => {
               <tbody>
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-12 text-muted-foreground">
+                    <td
+                      colSpan={6}
+                      className="text-center py-12 text-muted-foreground"
+                    >
                       No users found
                     </td>
                   </tr>
@@ -347,13 +362,20 @@ const UsersManagementPage = () => {
                       <td className="p-4">
                         <div className="text-sm">
                           {user.email && <p>{user.email}</p>}
-                          {user.phone && <p className="text-muted-foreground">{user.phone}</p>}
+                          {user.phone && (
+                            <p className="text-muted-foreground">
+                              {user.phone}
+                            </p>
+                          )}
                         </div>
                       </td>
                       <td className="p-4">{getRoleBadge(user.role.name)}</td>
                       <td className="p-4">
                         {user.is_active ? (
-                          <Badge variant="outline" className="bg-green-100 text-green-800">
+                          <Badge
+                            variant="outline"
+                            className="bg-green-100 text-green-800"
+                          >
                             Active
                           </Badge>
                         ) : (
@@ -397,15 +419,15 @@ const UsersManagementPage = () => {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingUser ? 'Edit User' : 'Add New User'}
+              {editingUser ? "Edit User" : "Add New User"}
             </DialogTitle>
             <DialogDescription>
               {editingUser
-                ? 'Update user information and permissions'
-                : 'Create a new user account'}
+                ? "Update user information and permissions"
+                : "Create a new user account"}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -481,7 +503,7 @@ const UsersManagementPage = () => {
               Cancel
             </Button>
             <Button onClick={handleSubmit}>
-              {editingUser ? 'Update' : 'Create'} User
+              {editingUser ? "Update" : "Create"} User
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -496,7 +518,7 @@ const UsersManagementPage = () => {
               Send an invitation email to a new contributor
             </DialogDescription>
           </DialogHeader>
-          
+
           <div>
             <Label htmlFor="inviteEmail">Email Address *</Label>
             <Input
@@ -509,7 +531,10 @@ const UsersManagementPage = () => {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsInviteDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleInvite}>
@@ -524,4 +549,3 @@ const UsersManagementPage = () => {
 };
 
 export default UsersManagementPage;
-

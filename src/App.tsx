@@ -13,8 +13,8 @@ function App() {
       <PersistGate
         loading={
           <LoadingPage
-            title="Gotera Youth"
-            subtitle="Initializing Member Management System"
+            title="Zoe Magazine"
+            subtitle="Initializing Content Management System"
           />
         }
         persistor={persistor}

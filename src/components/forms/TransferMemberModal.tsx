@@ -111,11 +111,11 @@ const TransferMemberModal = ({
               </SelectTrigger>
               <SelectContent>
                 {familiesLoading ? (
-                  <SelectItem value="" disabled>
+                  <SelectItem value="loading" disabled>
                     Loading families...
                   </SelectItem>
                 ) : availableFamilies.length === 0 ? (
-                  <SelectItem value="" disabled>
+                  <SelectItem value="no-families" disabled>
                     No other families available
                   </SelectItem>
                 ) : (
