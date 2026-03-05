@@ -9,6 +9,7 @@ export interface User {
   bio?: string;
   avatar_url?: string;
   is_active: boolean;
+  created_at?: string;
   role: {
     id: string;
     name: string;

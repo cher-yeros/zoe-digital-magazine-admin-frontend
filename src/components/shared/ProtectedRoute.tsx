@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/redux/useAuth";
+import { getRoleName } from "@/redux/slices/authSlice";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -21,7 +22,7 @@ const ProtectedRoute = ({
   }
 
   // Check role-based access
-  const userRole = user.role?.toLowerCase();
+  const userRole = getRoleName(user).toLowerCase();
 
   if (requiredRole && userRole !== requiredRole.toLowerCase()) {
     // If user doesn't have the required role, redirect to dashboard with error message

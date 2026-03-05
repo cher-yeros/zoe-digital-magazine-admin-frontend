@@ -82,14 +82,10 @@ const UserProfileDropdown = () => {
     return "User";
   };
 
-  const getRoleLabel = () => {
-    if (user?.role) {
-      return user.role;
-    }
-    if (user?.member?.role?.name) {
-      return user.member.role.name;
-    }
-    return "User";
+  const getRoleLabel = (): string => {
+    if (user?.member?.role?.name) return user.member.role.name;
+    const r = user?.role;
+    return (typeof r === "string" ? r : (r as { name?: string })?.name) ?? "User";
   };
 
   return (

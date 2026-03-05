@@ -39,6 +39,8 @@ import {
   INVITE_USER,
   UPDATE_USER,
 } from "../../graphql/magazine-operations";
+import type { GetRolesResult, GetUsersResult } from "../../types/magazine-graphql";
+import type { User as MagazineUser } from "../../redux/slices/magazineSlice";
 import {
   addUser,
   removeUser,
@@ -50,7 +52,7 @@ import type { RootState } from "../../redux/store";
 
 const UsersManagementPage = () => {
   const dispatch = useDispatch();
-  const { users, usersLoading } = useSelector(
+  const { users } = useSelector(
     (state: RootState) => state.magazine
   );
 
@@ -70,7 +72,7 @@ const UsersManagementPage = () => {
   const [inviteEmail, setInviteEmail] = useState("");
 
   // GraphQL Queries
-  const { data, loading, refetch } = useQuery(GET_USERS, {
+  const { data, loading, refetch } = useQuery<GetUsersResult>(GET_USERS, {
     variables: {
       filter: {
         role: roleFilter !== "all" ? roleFilter : undefined,
@@ -79,7 +81,7 @@ const UsersManagementPage = () => {
     fetchPolicy: "cache-and-network",
   });
 
-  const { data: rolesData } = useQuery(GET_ROLES);
+  const { data: rolesData } = useQuery<GetRolesResult>(GET_ROLES);
 
   // Mutations
   const [createUserMutation] = useMutation(CREATE_USER);
@@ -89,7 +91,7 @@ const UsersManagementPage = () => {
 
   useEffect(() => {
     if (data?.users?.data) {
-      dispatch(setUsers(data.users.data));
+      dispatch(setUsers(data.users.data as MagazineUser[]));
       dispatch(setUsersLoading(false));
     }
   }, [data, dispatch]);
@@ -165,7 +167,7 @@ const UsersManagementPage = () => {
             },
           },
         });
-        dispatch(updateUser(data.updateUser));
+        dispatch(updateUser((data as { updateUser: MagazineUser }).updateUser));
         toast.success("User updated successfully");
       } else {
         const { data } = await createUserMutation({
@@ -180,7 +182,7 @@ const UsersManagementPage = () => {
             },
           },
         });
-        dispatch(addUser(data.createUser));
+        dispatch(addUser((data as { createUser: MagazineUser }).createUser));
         toast.success("User created successfully");
       }
       closeDialog();
@@ -212,7 +214,7 @@ const UsersManagementPage = () => {
     }
 
     try {
-      const { data } = await inviteUserMutation({
+      await inviteUserMutation({
         variables: {
           input: {
             email: inviteEmail,
@@ -295,7 +297,7 @@ const UsersManagementPage = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Roles</SelectItem>
-                {rolesData?.roles?.map((role: any) => (
+                {rolesData?.roles?.map((role) => (
                   <SelectItem key={role.id} value={role.id}>
                     {role.name}
                   </SelectItem>
@@ -385,7 +387,7 @@ const UsersManagementPage = () => {
                         )}
                       </td>
                       <td className="p-4 text-sm text-muted-foreground">
-                        {new Date(user.created_at).toLocaleDateString()}
+                        {user.created_at ? new Date(user.created_at).toLocaleDateString() : "—"}
                       </td>
                       <td className="p-4">
                         <div className="flex justify-end gap-2">
@@ -479,7 +481,7 @@ const UsersManagementPage = () => {
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                  {rolesData?.roles?.map((role: any) => (
+                  {rolesData?.roles?.map((role) => (
                     <SelectItem key={role.id} value={role.id}>
                       {role.name} - {role.description}
                     </SelectItem>

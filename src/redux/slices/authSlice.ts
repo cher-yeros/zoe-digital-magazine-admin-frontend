@@ -4,14 +4,24 @@ import {
   type PayloadAction,
 } from "@reduxjs/toolkit";
 
-// Types
+// Types - aligned with magazine API UserFragment and login UserInfo
 export interface User {
-  id: string;
-  email: string;
-  display_name: string;
+  id: string | number;
+  email?: string;
+  display_name?: string;
   avatar_url?: string | null;
-  role: string;
-  is_active: boolean;
+  role: string | { name?: string };
+  is_active?: boolean;
+  phone?: string;
+  member?: {
+    id: number;
+    full_name: string;
+    contact_no?: string | null;
+    family?: { id: number; name: string } | null;
+    role?: { id: number; name: string; description: string } | null;
+    status?: { id: number; name: string } | null;
+    ministries?: Array<{ id: number; name?: string }>;
+  } | null;
 }
 
 export interface AuthState {
@@ -217,6 +227,14 @@ export const {
 
 // Export reducer
 export default authSlice.reducer;
+
+/** Get role as a string for display or comparison (handles role: string | { name?: string }) */
+export function getRoleName(user: User | null): string {
+  if (!user?.role) return "";
+  return typeof user.role === "string"
+    ? user.role
+    : (user.role as { name?: string }).name ?? "";
+}
 
 // Selectors
 export const selectCurrentUser = (state: { auth: AuthState }) =>

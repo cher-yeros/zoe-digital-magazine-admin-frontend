@@ -23,6 +23,8 @@ import {
   GET_COMMENTS,
   MODERATE_COMMENT,
 } from "../../graphql/magazine-operations";
+import type { GetCommentsResult } from "../../types/magazine-graphql";
+import type { Comment } from "../../redux/slices/magazineSlice";
 import {
   setComments,
   setCommentsLoading,
@@ -38,7 +40,7 @@ const CommentsPage = () => {
   const [activeTab, setActiveTab] = useState("pending");
 
   // GraphQL Query
-  const { data, loading, refetch } = useQuery(GET_COMMENTS, {
+  const { data, loading, refetch } = useQuery<GetCommentsResult>(GET_COMMENTS, {
     variables: {
       filter: {
         is_moderated: activeTab === "moderated",
@@ -55,7 +57,7 @@ const CommentsPage = () => {
 
   useEffect(() => {
     if (data?.comments?.data) {
-      dispatch(setComments(data.comments.data));
+      dispatch(setComments(data.comments.data as Comment[]));
       dispatch(setCommentsLoading(false));
     }
   }, [data, dispatch]);
@@ -91,7 +93,7 @@ const CommentsPage = () => {
           },
         },
       });
-      dispatch(updateComment(data.moderateComment.comment));
+      dispatch(updateComment((data as { moderateComment: { comment: Comment } }).moderateComment.comment));
       toast.success(`Comment ${action}d successfully`);
       refetch();
     } catch (error) {

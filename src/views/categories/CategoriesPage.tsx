@@ -28,6 +28,8 @@ import {
   GET_CATEGORIES,
   UPDATE_CATEGORY,
 } from "../../graphql/magazine-operations";
+import type { GetCategoriesResult } from "../../types/magazine-graphql";
+import type { Category } from "../../redux/slices/magazineSlice";
 import {
   addCategory,
   removeCategory,
@@ -49,7 +51,7 @@ const CategoriesPage = () => {
   const [description, setDescription] = useState("");
 
   // GraphQL Queries
-  const { data, loading, refetch } = useQuery(GET_CATEGORIES, {
+  const { data, loading, refetch } = useQuery<GetCategoriesResult>(GET_CATEGORIES, {
     fetchPolicy: "cache-and-network",
   });
 
@@ -60,7 +62,7 @@ const CategoriesPage = () => {
 
   useEffect(() => {
     if (data?.categories) {
-      dispatch(setCategories(data.categories));
+      dispatch(setCategories(data.categories as Category[]));
     }
   }, [data, dispatch]);
 
@@ -124,7 +126,7 @@ const CategoriesPage = () => {
             },
           },
         });
-        dispatch(updateCategory(data.updateCategory));
+        dispatch(updateCategory((data as { updateCategory: Category }).updateCategory));
         toast.success("Category updated successfully");
       } else {
         const { data } = await createCategoryMutation({
@@ -136,7 +138,7 @@ const CategoriesPage = () => {
             },
           },
         });
-        dispatch(addCategory(data.createCategory));
+        dispatch(addCategory((data as { createCategory: Category }).createCategory));
         toast.success("Category created successfully");
       }
       closeDialog();

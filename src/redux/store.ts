@@ -11,7 +11,7 @@ import magazineReducer from "./slices/magazineSlice";
 const authPersistConfig = {
   key: "auth",
   storage,
-  whitelist: ["user", "token", "isAuthenticated"], // Only persist these fields
+  whitelist: ["user", "accessToken", "refreshToken", "isAuthenticated"],
 };
 
 // Root reducer

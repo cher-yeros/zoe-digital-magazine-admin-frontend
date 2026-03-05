@@ -21,6 +21,11 @@ import {
   GET_SUBMISSIONS,
   GET_CONTRIBUTOR_STATS,
 } from "../../graphql/magazine-operations";
+import type {
+  GetSubmissionsResult,
+  MagazineAnalyticsResult,
+} from "../../types/magazine-graphql";
+import type { AnalyticsOverview, Article } from "../../redux/slices/magazineSlice";
 import {
   setAnalyticsOverview,
   setAnalyticsLoading,
@@ -32,10 +37,14 @@ import LoadingPage from "../../components/ui/loading-page";
 const MagazineDashboard = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { analyticsOverview, analyticsLoading, submissions } = useSelector(
+  const { analyticsOverview, submissions } = useSelector(
     (state: RootState) => state.magazine
   );
   const { user } = useSelector((state: RootState) => state.auth);
+  const roleName =
+    user?.role && typeof user.role === "object"
+      ? (user.role as { name?: string }).name
+      : (user?.role as string | undefined);
 
   // GraphQL Queries
   // Memoize date ranges and variables so useQuery doesn't receive new references
@@ -55,7 +64,7 @@ const MagazineDashboard = () => {
     []
   );
 
-  const { data: analyticsData, loading: analyticsQueryLoading } = useQuery(
+  const { data: analyticsData, loading: analyticsQueryLoading } = useQuery<MagazineAnalyticsResult>(
     GET_ANALYTICS_OVERVIEW,
     {
       variables: { since: last30Days },
@@ -63,7 +72,7 @@ const MagazineDashboard = () => {
     }
   );
 
-  const { data: topArticlesData } = useQuery(GET_TOP_ARTICLES, {
+  const { data: topArticlesData } = useQuery<MagazineAnalyticsResult>(GET_TOP_ARTICLES, {
     variables: {
       since: last7Days,
       metric: "views",
@@ -71,26 +80,26 @@ const MagazineDashboard = () => {
     },
   });
 
-  const { data: submissionsData } = useQuery(GET_SUBMISSIONS, {
+  const { data: submissionsData } = useQuery<GetSubmissionsResult>(GET_SUBMISSIONS, {
     variables: submissionsVariables,
-    skip: user?.role?.name === "contributor",
+    skip: roleName === "contributor",
   });
 
-  const { data: contributorStatsData } = useQuery(GET_CONTRIBUTOR_STATS, {
+  const { data: contributorStatsData } = useQuery<MagazineAnalyticsResult>(GET_CONTRIBUTOR_STATS, {
     variables: { since: last30Days },
-    skip: user?.role?.name === "contributor",
+    skip: roleName === "contributor",
   });
 
   useEffect(() => {
     if (analyticsData?.analyticsOverview) {
-      dispatch(setAnalyticsOverview(analyticsData.analyticsOverview));
+      dispatch(setAnalyticsOverview(analyticsData.analyticsOverview as AnalyticsOverview));
       dispatch(setAnalyticsLoading(false));
     }
   }, [analyticsData, dispatch]);
 
   useEffect(() => {
     if (submissionsData?.submissions?.data) {
-      dispatch(setSubmissions(submissionsData.submissions.data));
+      dispatch(setSubmissions(submissionsData.submissions.data as Article[]));
     }
   }, [submissionsData, dispatch]);
 
@@ -190,7 +199,7 @@ const MagazineDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Pending Submissions */}
-        {user?.role?.name !== "contributor" && (
+        {roleName !== "contributor" && (
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -297,7 +306,7 @@ const MagazineDashboard = () => {
         </Card>
 
         {/* Top Contributors */}
-        {user?.role?.name !== "contributor" &&
+        {roleName !== "contributor" &&
           contributorStatsData?.contributorStats && (
             <Card>
               <CardHeader>
@@ -367,7 +376,7 @@ const MagazineDashboard = () => {
                 <IconArticle className="mr-2 h-4 w-4" />
                 Create New Article
               </Button>
-              {user?.role?.name !== "contributor" && (
+              {roleName !== "contributor" && (
                 <>
                   <Button
                     variant="outline"

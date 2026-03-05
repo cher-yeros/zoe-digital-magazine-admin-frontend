@@ -18,6 +18,8 @@ import {
   GET_SUBMISSIONS,
   REVIEW_REVISION,
 } from "../../graphql/magazine-operations";
+import type { GetSubmissionsResult } from "../../types/magazine-graphql";
+import type { Article } from "../../redux/slices/magazineSlice";
 import {
   setArticlesLoading,
   setSubmissions,
@@ -27,14 +29,14 @@ import type { RootState } from "../../redux/store";
 const SubmissionsPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { submissions, articlesLoading } = useSelector(
+  const { submissions } = useSelector(
     (state: RootState) => state.magazine
   );
 
   const [activeTab, setActiveTab] = useState("submitted");
 
   // GraphQL Query
-  const { data, loading, refetch } = useQuery(GET_SUBMISSIONS, {
+  const { data, loading, refetch } = useQuery<GetSubmissionsResult>(GET_SUBMISSIONS, {
     variables: {
       status: activeTab === "all" ? undefined : activeTab,
       pagination: {
@@ -49,7 +51,7 @@ const SubmissionsPage = () => {
 
   useEffect(() => {
     if (data?.submissions?.data) {
-      dispatch(setSubmissions(data.submissions.data));
+      dispatch(setSubmissions(data.submissions.data as Article[]));
       dispatch(setArticlesLoading(false));
     }
   }, [data, dispatch]);

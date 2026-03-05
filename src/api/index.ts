@@ -8,7 +8,7 @@ import apolloClient from "../lib/apollo";
 export { apolloClient };
 
 // Legacy axios instance - deprecated, use Apollo Client instead
-import { store } from "@/redux/store";
+import { store, type RootState } from "@/redux/store";
 import axios from "axios";
 
 const api = axios.create({
@@ -20,8 +20,8 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const state = store.getState();
-    const token = state.auth?.token;
+    const state = store.getState() as RootState;
+    const token = state.auth?.accessToken ?? null;
 
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
