@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@apollo/client/react";
 import {
   IconEdit,
+  IconLoader2,
   IconMail,
   IconPlus,
   IconSearch,
@@ -22,6 +23,7 @@ import {
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
+import { Textarea } from "../../components/ui/textarea";
 import LoadingPage from "../../components/ui/loading-page";
 import {
   Select,
@@ -47,6 +49,15 @@ import {
   updateUser,
 } from "../../redux/slices/magazineSlice";
 import type { RootState } from "../../redux/store";
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  const err = error as { graphQLErrors?: Array<{ message?: string }>; message?: string };
+  if (Array.isArray(err?.graphQLErrors) && err.graphQLErrors[0]?.message) {
+    return err.graphQLErrors[0].message;
+  }
+  if (typeof err?.message === "string") return err.message;
+  return fallback;
+}
 
 const UsersManagementPage = () => {
   const dispatch = useDispatch();
@@ -82,10 +93,14 @@ const UsersManagementPage = () => {
   const { data: rolesData } = useQuery(GET_ROLES);
 
   // Mutations
-  const [createUserMutation] = useMutation(CREATE_USER);
-  const [updateUserMutation] = useMutation(UPDATE_USER);
+  const [createUserMutation, { loading: createLoading }] =
+    useMutation(CREATE_USER);
+  const [updateUserMutation, { loading: updateLoading }] =
+    useMutation(UPDATE_USER);
   const [deleteUserMutation] = useMutation(DELETE_USER);
   const [inviteUserMutation] = useMutation(INVITE_USER);
+
+  const isSubmitting = createLoading || updateLoading;
 
   useEffect(() => {
     if (data?.users?.data) {
@@ -186,7 +201,7 @@ const UsersManagementPage = () => {
       closeDialog();
       refetch();
     } catch (error) {
-      toast.error("Failed to save user");
+      toast.error(getErrorMessage(error, "Failed to save user"));
       console.error("Save error:", error);
     }
   };
@@ -199,7 +214,7 @@ const UsersManagementPage = () => {
         toast.success("User deleted successfully");
         refetch();
       } catch (error) {
-        toast.error("Failed to delete user");
+        toast.error(getErrorMessage(error, "Failed to delete user"));
         console.error("Delete error:", error);
       }
     }
@@ -223,7 +238,7 @@ const UsersManagementPage = () => {
       setIsInviteDialogOpen(false);
       setInviteEmail("");
     } catch (error) {
-      toast.error("Failed to send invitation");
+      toast.error(getErrorMessage(error, "Failed to send invitation"));
       console.error("Invite error:", error);
     }
   };
@@ -464,11 +479,12 @@ const UsersManagementPage = () => {
 
             <div>
               <Label htmlFor="bio">Bio</Label>
-              <Input
+              <Textarea
                 id="bio"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Brief description"
+                rows={4}
               />
             </div>
 
@@ -499,11 +515,18 @@ const UsersManagementPage = () => {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={closeDialog}>
+            <Button variant="outline" onClick={closeDialog} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit}>
-              {editingUser ? "Update" : "Create"} User
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {editingUser ? "Updating..." : "Creating..."}
+                </>
+              ) : (
+                <>{editingUser ? "Update" : "Create"} User</>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

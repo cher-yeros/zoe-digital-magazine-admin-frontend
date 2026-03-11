@@ -18,10 +18,25 @@ import { ArrowRight, Eye, EyeOff, Mail, Lock, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+interface LoginMutationData {
+  login: {
+    access_token: string;
+    refresh_token: string;
+    user: {
+      id: string;
+      email?: string;
+      display_name?: string;
+      avatar_url?: string;
+      role?: { name?: string };
+      is_active?: boolean;
+    };
+  };
+}
+
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const [loginMutation, { loading }] = useMutation(LOGIN);
+  const [loginMutation, { loading }] = useMutation<LoginMutationData>(LOGIN);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -98,13 +113,13 @@ const Login = () => {
             refreshToken: refresh_token,
             user: {
               id: user.id,
-              email: user.email,
-              display_name: user.display_name,
+              email: user.email ?? "",
+              display_name: user.display_name ?? "",
               avatar_url: user.avatar_url,
-              role: user.role?.name || "contributor",
-              is_active: user.is_active,
+              role: user.role?.name ?? "contributor",
+              is_active: user.is_active ?? false,
             },
-          })
+          }),
         );
 
         // Store tokens in localStorage for persistence
@@ -119,12 +134,22 @@ const Login = () => {
         // Navigate to dashboard
         navigate("/admin/dashboard");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Login error:", error);
-      const errorMessage =
-        error?.graphQLErrors?.[0]?.message ||
-        error?.message ||
-        "Invalid email or password. Please try again.";
+      let errorMessage = "Invalid email or password. Please try again.";
+      if (error && typeof error === "object") {
+        const err = error as {
+          graphQLErrors?: Array<{ message?: string }>;
+          message?: string;
+        };
+        if (Array.isArray(err.graphQLErrors) && err.graphQLErrors[0]?.message) {
+          errorMessage = err.graphQLErrors[0].message;
+        } else if (typeof err.message === "string") {
+          errorMessage = err.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       setErrors({
         general: errorMessage,
       });
@@ -156,9 +181,9 @@ const Login = () => {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
             Zoe Magazine
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 font-medium">
+          {/* <p className="text-gray-600 dark:text-gray-400 font-medium">
             Content Management System
-          </p>
+          </p> */}
         </div>
 
         {/* Login Card */}
@@ -281,7 +306,7 @@ const Login = () => {
                   onClick={() => {
                     // TODO: Implement forgot password
                     alert(
-                      "Please contact your administrator to reset your password."
+                      "Please contact your administrator to reset your password.",
                     );
                   }}
                 >

@@ -96,6 +96,7 @@
     "@types/react-dom": "^19.1.2",
     "@types/react-helmet": "^6.1.11",
     "@vitejs/plugin-react": "^4.4.1",
+    "baseline-browser-mapping": "^2.10.0",
     "eslint": "^9.25.0",
     "eslint-import-resolver-typescript": "^4.4.3",
     "eslint-plugin-import": "^2.31.0",
