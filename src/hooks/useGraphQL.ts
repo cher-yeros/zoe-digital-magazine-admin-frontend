@@ -5,6 +5,7 @@ import {
   setCredentials,
   clearCredentials,
   setError,
+  type User,
 } from "@/redux/slices/authSlice";
 import {
   CREATE_FAMILY,
@@ -813,8 +814,9 @@ export const useLogin = () => {
         // Dispatch to Redux store
         dispatch(
           setCredentials({
-            token: loginResponse.token,
-            user: loginResponse.user,
+            accessToken: loginResponse.token,
+            refreshToken: loginResponse.refreshToken ?? "",
+            user: loginResponse.user as User,
           })
         );
 

@@ -4,7 +4,6 @@ import { Button } from '../ui/button';
 import {
   IconBold,
   IconItalic,
-  IconUnderline,
   IconList,
   IconListNumbers,
   IconLink,

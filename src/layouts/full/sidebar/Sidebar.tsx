@@ -70,7 +70,7 @@ const Sidebar = () => {
 
   // Determine which navigation items to show based on user role
   const getRoleNavigation = () => {
-    const roleName = user?.role?.toLowerCase();
+    const roleName = (typeof user?.role === "string" ? user.role : (user?.role as { name?: string })?.name ?? "").toLowerCase();
     switch (roleName) {
       case "administrator":
         return administratorNavigation;

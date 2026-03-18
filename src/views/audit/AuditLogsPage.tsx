@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import { GET_AUDIT_LOGS } from "../../graphql/magazine-operations";
+import type { GetAuditLogsResult } from "../../types/magazine-graphql";
+import type { AuditLog } from "../../redux/slices/magazineSlice";
 import {
   setAuditLogs,
   setAuditLogsLoading,
@@ -21,7 +23,7 @@ import {
 import type { RootState } from "../../redux/store";
 const AuditLogsPage = () => {
   const dispatch = useDispatch();
-  const { auditLogs, auditLogsLoading } = useSelector(
+  const { auditLogs } = useSelector(
     (state: RootState) => state.magazine
   );
 
@@ -30,7 +32,7 @@ const AuditLogsPage = () => {
   const [targetTypeFilter, setTargetTypeFilter] = useState("all");
 
   // GraphQL Query
-  const { data, loading } = useQuery(GET_AUDIT_LOGS, {
+  const { data, loading } = useQuery<GetAuditLogsResult>(GET_AUDIT_LOGS, {
     variables: {
       filter: {
         action: actionFilter !== "all" ? actionFilter : undefined,
@@ -45,7 +47,7 @@ const AuditLogsPage = () => {
 
   useEffect(() => {
     if (data?.auditLogs?.data) {
-      dispatch(setAuditLogs(data.auditLogs.data));
+      dispatch(setAuditLogs(data.auditLogs.data as AuditLog[]));
       dispatch(setAuditLogsLoading(false));
     }
   }, [data, dispatch]);

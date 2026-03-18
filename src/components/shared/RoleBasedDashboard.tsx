@@ -3,7 +3,7 @@ import { useAuth } from "@/redux/useAuth";
 
 const RoleBasedDashboard = () => {
   const { user } = useAuth();
-  const userRole = user?.role?.toLowerCase();
+  const userRole = (typeof user?.role === "string" ? user.role : (user?.role as { name?: string })?.name ?? "").toLowerCase();
 
   // Redirect based on user role
   if (userRole === "fl") {

@@ -26,6 +26,8 @@ import {
   GET_SUBSCRIPTIONS,
   SEND_NEWSLETTER,
 } from "../../graphql/magazine-operations";
+import type { GetSubscriptionsResult } from "../../types/magazine-graphql";
+import type { Subscription } from "../../redux/slices/magazineSlice";
 import {
   setSubscriptions,
   setSubscriptionsLoading,
@@ -34,7 +36,7 @@ import type { RootState } from "../../redux/store";
 
 const SubscriptionsPage = () => {
   const dispatch = useDispatch();
-  const { subscriptions, subscriptionsLoading } = useSelector(
+  const { subscriptions } = useSelector(
     (state: RootState) => state.magazine
   );
 
@@ -47,7 +49,7 @@ const SubscriptionsPage = () => {
   const [segment, setSegment] = useState("all_subscribers");
 
   // GraphQL Query
-  const { data, loading } = useQuery(GET_SUBSCRIPTIONS, {
+  const { data, loading } = useQuery<GetSubscriptionsResult>(GET_SUBSCRIPTIONS, {
     variables: {
       pagination: {
         limit: 100,
@@ -62,7 +64,7 @@ const SubscriptionsPage = () => {
 
   useEffect(() => {
     if (data?.subscriptions?.data) {
-      dispatch(setSubscriptions(data.subscriptions.data));
+      dispatch(setSubscriptions(data.subscriptions.data as Subscription[]));
       dispatch(setSubscriptionsLoading(false));
     }
   }, [data, dispatch]);

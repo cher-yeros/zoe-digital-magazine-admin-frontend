@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/redux/useAuth";
+import { getRoleName } from "@/redux/slices/authSlice";
 
 const RoleTestComponent = () => {
   const { user, isAuthenticated } = useAuth();
@@ -28,12 +29,12 @@ const RoleTestComponent = () => {
           <strong>Role:</strong>{" "}
           <Badge
             className={
-              user.role?.toLowerCase() === "admin"
+              getRoleName(user).toLowerCase() === "admin"
                 ? "bg-blue-100 text-blue-800"
                 : "bg-green-100 text-green-800"
             }
           >
-            {user.role}
+            {getRoleName(user)}
           </Badge>
         </div>
         <div>
@@ -53,12 +54,12 @@ const RoleTestComponent = () => {
           <strong>Access Level:</strong>{" "}
           <Badge
             className={
-              user.role?.toLowerCase() === "admin"
+              getRoleName(user).toLowerCase() === "admin"
                 ? "bg-purple-100 text-purple-800"
                 : "bg-orange-100 text-orange-800"
             }
           >
-            {user.role?.toLowerCase() === "admin"
+            {getRoleName(user).toLowerCase() === "admin"
               ? "Full Access"
               : "Family Leader"}
           </Badge>

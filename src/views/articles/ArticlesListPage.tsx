@@ -26,6 +26,8 @@ import {
   DELETE_ARTICLE,
   GET_ARTICLES,
 } from "../../graphql/magazine-operations";
+import type { GetArticlesResult } from "../../types/magazine-graphql";
+import type { Article } from "../../redux/slices/magazineSlice";
 import {
   removeArticle,
   setArticles,
@@ -46,7 +48,7 @@ const ArticlesListPage = () => {
   );
 
   // GraphQL Query
-  const { data, loading, refetch } = useQuery(GET_ARTICLES, {
+  const { data, loading, refetch } = useQuery<GetArticlesResult>(GET_ARTICLES, {
     variables: {
       filter: {
         status: statusFilter !== "all" ? statusFilter : undefined,
@@ -65,7 +67,7 @@ const ArticlesListPage = () => {
 
   useEffect(() => {
     if (data?.articles?.data) {
-      dispatch(setArticles(data.articles.data));
+      dispatch(setArticles(data.articles.data as Article[]));
       dispatch(setArticlesLoading(false));
     }
   }, [data, dispatch]);

@@ -29,6 +29,8 @@ import {
   GET_ISSUES,
   UPDATE_ISSUE,
 } from "../../graphql/magazine-operations";
+import type { GetIssuesResult } from "../../types/magazine-graphql";
+import type { Issue } from "../../redux/slices/magazineSlice";
 import {
   addIssue,
   removeIssue,
@@ -52,7 +54,7 @@ const IssuesPage = () => {
   const [coverImageUrl, setCoverImageUrl] = useState("");
 
   // GraphQL Queries
-  const { data, loading, refetch } = useQuery(GET_ISSUES, {
+  const { data, loading, refetch } = useQuery<GetIssuesResult>(GET_ISSUES, {
     fetchPolicy: "cache-and-network",
   });
 
@@ -63,7 +65,7 @@ const IssuesPage = () => {
 
   useEffect(() => {
     if (data?.issues?.data) {
-      dispatch(setIssues(data.issues.data));
+      dispatch(setIssues(data.issues.data as Issue[]));
     }
   }, [data, dispatch]);
 
@@ -130,7 +132,7 @@ const IssuesPage = () => {
             },
           },
         });
-        dispatch(updateIssue(data.updateIssue));
+        dispatch(updateIssue((data as { updateIssue: Issue }).updateIssue));
         toast.success("Issue updated successfully");
       } else {
         const { data } = await createIssueMutation({
@@ -143,7 +145,7 @@ const IssuesPage = () => {
             },
           },
         });
-        dispatch(addIssue(data.createIssue));
+        dispatch(addIssue((data as { createIssue: Issue }).createIssue));
         toast.success("Issue created successfully");
       }
       closeDialog();

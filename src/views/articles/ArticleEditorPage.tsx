@@ -1,4 +1,3 @@
-import type { ApolloError } from "@apollo/client";
 import { IconArrowLeft, IconDeviceFloppy, IconSend } from "@tabler/icons-react";
 import { GraphQLError } from "graphql";
 import { useEffect, useState } from "react";
@@ -28,6 +27,14 @@ import {
   GET_ISSUES,
   UPDATE_ARTICLE,
 } from "../../graphql/magazine-operations";
+import type {
+  CreateArticleResult,
+  CreateRevisionResult,
+  GetArticleResult,
+  GetCategoriesResult,
+  GetIssuesResult,
+} from "../../types/magazine-graphql";
+import type { Article } from "../../redux/slices/magazineSlice";
 import { addArticle, updateArticle } from "../../redux/slices/magazineSlice";
 import { useMutation, useQuery } from "@apollo/client/react";
 
@@ -37,10 +44,10 @@ const ArticleEditorPage = () => {
   const dispatch = useDispatch();
   const isEditMode = !!id;
 
-  const getErrorMessage = (error: unknown) => {
+  const getErrorMessage = (error: unknown): string => {
     if (error instanceof GraphQLError) {
       const gqlMessage = error.extensions?.code;
-      if (gqlMessage) return gqlMessage;
+      if (gqlMessage != null) return String(gqlMessage);
     }
     if (error instanceof Error) return error.message;
     return "Failed to save article";
@@ -62,21 +69,19 @@ const ArticleEditorPage = () => {
   const [tagInput, setTagInput] = useState("");
 
   // GraphQL Queries
-  const { data: articleData, loading: articleLoading } = useQuery(GET_ARTICLE, {
+  const { data: articleData, loading: articleLoading } = useQuery<GetArticleResult>(GET_ARTICLE, {
     variables: { id },
     skip: !isEditMode,
   });
 
-  const { data: categoriesData } = useQuery(GET_CATEGORIES);
-  const { data: issuesData } = useQuery(GET_ISSUES);
+  const { data: categoriesData } = useQuery<GetCategoriesResult>(GET_CATEGORIES);
+  const { data: issuesData } = useQuery<GetIssuesResult>(GET_ISSUES);
 
   // Mutations
   const [createArticleMutation, { loading: creating }] =
-    useMutation(CREATE_ARTICLE);
-  const [updateArticleMutation, { loading: updating }] =
-    useMutation(UPDATE_ARTICLE);
-  const [createRevisionMutation, { loading: creatingRevision }] =
-    useMutation(CREATE_REVISION);
+    useMutation<CreateArticleResult>(CREATE_ARTICLE);
+  const [, { loading: updating }] = useMutation(UPDATE_ARTICLE);
+  const [createRevisionMutation] = useMutation<CreateRevisionResult>(CREATE_REVISION);
 
   // Load article data in edit mode
   useEffect(() => {
@@ -166,7 +171,7 @@ const ArticleEditorPage = () => {
           },
         });
 
-        dispatch(updateArticle(data.createRevision));
+        dispatch(updateArticle(data!.createRevision! as Article));
         toast.success("Article revision created successfully");
       } else {
         // Create new article with initial revision
@@ -181,14 +186,14 @@ const ArticleEditorPage = () => {
           },
         });
 
-        dispatch(addArticle(data.createArticle.article));
+        const article = data!.createArticle!.article! as Article;
+        dispatch(addArticle(article as Article));
         toast.success("Article created successfully");
-        navigate(`/admin/articles/${data.createArticle.article.id}/edit`);
+        navigate(`/admin/articles/${String(article.id)}/edit`);
       }
     } catch (error) {
       console.log("Save error:", error);
-      const message = getErrorMessage(error);
-      toast.error(message);
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -368,7 +373,7 @@ const ArticleEditorPage = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {categoriesData?.categories?.map((category: any) => (
+                {categoriesData?.categories?.map((category) => (
                   <label key={category.id} className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -412,7 +417,7 @@ const ArticleEditorPage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
-                  {issuesData?.issues?.data?.map((issue: any) => (
+                  {issuesData?.issues?.data?.map((issue) => (
                     <SelectItem key={issue.id} value={issue.id}>
                       {issue.title}
                     </SelectItem>

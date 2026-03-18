@@ -14,29 +14,15 @@ import { useMutation } from "@apollo/client/react";
 import { LOGIN } from "@/graphql/magazine-operations";
 import { useAppDispatch } from "@/redux/hooks";
 import { setCredentials } from "@/redux/slices/authSlice";
+import type { MagazineLoginResult } from "@/types/magazine-graphql";
 import { ArrowRight, Eye, EyeOff, Mail, Lock, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-interface LoginMutationData {
-  login: {
-    access_token: string;
-    refresh_token: string;
-    user: {
-      id: string;
-      email?: string;
-      display_name?: string;
-      avatar_url?: string;
-      role?: { name?: string };
-      is_active?: boolean;
-    };
-  };
-}
-
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const [loginMutation, { loading }] = useMutation<LoginMutationData>(LOGIN);
+  const [loginMutation, { loading }] = useMutation<MagazineLoginResult>(LOGIN);
 
   const [formData, setFormData] = useState({
     email: "",
